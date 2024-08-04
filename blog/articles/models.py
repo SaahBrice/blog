@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from taggit.managers import TaggableManager
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
@@ -10,6 +11,7 @@ class Article(models.Model):
     published_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=[('draft', 'Draft'), ('published', 'Published')], default='draft')
     language = models.CharField(max_length=2, choices=[('EN', 'English'), ('FR', 'French')])
+    tags = TaggableManager()
 
     def __str__(self):
         return self.title

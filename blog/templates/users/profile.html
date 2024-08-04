@@ -10,5 +10,37 @@
 <p>Location: {{ user_profile.location }}</p>
 <p>Website: <a href="{{ user_profile.website }}">{{ user_profile.website }}</a></p>
 <p>Joined: {{ user_profile.date_joined }}</p>
-<a href="{% url 'user_profile_edit' %}">Edit Profile</a>
+<p>Followers: {{ user_profile.followers.count }}</p>
+<p>Following: {{ user_profile.following.count }}</p>
+
+{% if user.is_authenticated and user != user_profile %}
+    <a href="{% url 'toggle_follow' user_profile.username %}">
+        {% if is_following %}
+            Unfollow
+        {% else %}
+            Follow
+        {% endif %}
+    </a>
+    <a href="{% url 'toggle_block' user_profile.username %}">
+        {% if is_blocked %}
+            Unblock
+        {% else %}
+            Block
+        {% endif %}
+    </a>
+{% endif %}
+
+{% if user == user_profile %}
+    <a href="{% url 'user_profile_edit' %}">Edit Profile</a>
+    <a href="{% url 'followers_list' %}">View Followers</a>
+{% endif %}
+
+<h3>Recent Articles</h3>
+<ul>
+{% for article in articles %}
+    <li><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></li>
+{% empty %}
+    <li>No articles yet.</li>
+{% endfor %}
+</ul>
 {% endblock %}

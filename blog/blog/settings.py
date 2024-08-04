@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'articles',
     'search',
     'notifications',
+    'taggit',
 
 ]
 

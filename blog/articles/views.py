@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from .models import Article, Comment
 from .forms import ArticleForm, CommentForm
+from taggit.models import Tag
 
 class ArticleListView(ListView):
     model = Article
@@ -55,3 +56,18 @@ class ArticleUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Article.objects.filter(author=self.request.user)
+    
+
+class ArticlesByTagView(ListView):
+    model = Article
+    template_name = 'articles/article_list.html'
+    context_object_name = 'articles'
+
+    def get_queryset(self):
+        return Article.objects.filter(tags__slug=self.kwargs['tag_slug'], status='published')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tags'] = Tag.objects.all()
+        context['current_tag'] = self.kwargs['tag_slug']
+        return context

@@ -7,12 +7,16 @@
     <header>
         <nav>
             <a href="{% url 'article_list' %}">Home</a>
+            <a href="{% url 'user_list' %}">All Users</a>
             {% if user.is_authenticated %}
                 <form method="get" action="{% url 'search' %}">
                     <input type="text" name="q" placeholder="Search articles">
                     <button type="submit">Search</button>
                 </form>
-                <a href="{% url 'user_profile' %}">Profile</a>
+                
+                <a href="{% url 'following_list' %}">Following</a>
+                <a href="{% url 'followers_list' %}">Followers</a>
+                <a href="{% url 'user_profile' user.username %}">Profile</a>
                 <a href="{% url 'account_logout' %}">Logout</a>
             {% else %}
                 <a href="{% url 'account_login' %}">Login</a>
