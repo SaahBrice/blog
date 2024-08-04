@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ article.title }}</h2>
+<p>Author: {{ article.author.username }}</p>
+<p>Published: {{ article.published_at }}</p>
+<div>{{ article.content }}</div>
+{% if user == article.author %}
+    <a href="{% url 'article_update' article.pk %}">Edit Article</a>
+{% endif %}
+
+<h3>Comments</h3>
+{% for comment in article.comments.all %}
+    <div>
+        <p>{{ comment.content }}</p>
+        <small>By {{ comment.author.username }} on {{ comment.created_at }}</small>
+    </div>
+{% empty %}
+    <p>No comments yet.</p>
+{% endfor %}
+
+{% if user.is_authenticated %}
+    <h4>Add a comment</h4>
+    <form method="post" action="{% url 'comment_create' article.pk %}">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">Submit Comment</button>
+    </form>
+{% else %}
+    <p>Please <a href="{% url 'account_login' %}">log in</a> to comment.</p>
+{% endif %}
+{% endblock %}

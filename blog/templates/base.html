@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}237APP{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{% url 'article_list' %}">Home</a>
+            {% if user.is_authenticated %}
+                <form method="get" action="{% url 'search' %}">
+                    <input type="text" name="q" placeholder="Search articles">
+                    <button type="submit">Search</button>
+                </form>
+                <a href="{% url 'user_profile' %}">Profile</a>
+                <a href="{% url 'account_logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'account_login' %}">Login</a>
+                <a href="{% url 'account_signup' %}">Sign Up</a>
+            {% endif %}
+
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+        <!-- Add footer content here -->
+    </footer>
+</body>
+</html>
