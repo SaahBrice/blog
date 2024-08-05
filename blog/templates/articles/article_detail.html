@@ -4,7 +4,16 @@
 
 {% block content %}
 <h2>{{ article.title }}</h2>
-<p>Author: {{ article.author.username }}</p>
+<p>Author: {{ article.author.username }}
+    {% if article.author.is_verified %}
+        <span class="badge">Verified</span>
+    {% endif %}
+    {% if article.author.is_premium %}
+        <span class="badge">Premium</span>
+    {% endif %}
+    {% if article.author.is_writer %}
+        <span class="badge">Writer</span>
+    {% endif %}</p>
 <p>Published: {{ article.published_at }}</p>
 <p>Tags: {% for tag in article.tags.all %}
     <a href="{% url 'article_by_tag' tag.slug %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}

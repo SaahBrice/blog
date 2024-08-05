@@ -86,3 +86,13 @@ class ActivityFeedView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Article.get_recent_articles_for_user(self.request.user)
+
+
+
+@login_required
+def toggle_premium(request):
+    request.user.is_premium = not request.user.is_premium
+    request.user.save()
+    status = "activated" if request.user.is_premium else "deactivated"
+    messages.success(request, f"Premium status {status}.")
+    return redirect('user_profile', username=request.user.username)

@@ -13,6 +13,32 @@
 <p>Followers: {{ user_profile.followers.count }}</p>
 <p>Following: {{ user_profile.following.count }}</p>
 
+<p>
+    Status:
+    {% if user_profile.is_verified %}
+        <span class="badge">Verified</span>
+    {% endif %}
+    {% if user_profile.is_premium %}
+        <span class="badge">Premium</span>
+    {% endif %}
+    {% if user_profile.is_writer %}
+        <span class="badge">Writer</span>
+    {% endif %}
+</p>
+
+
+{% if user == user_profile %}
+    <a href="{% url 'user_profile_edit' %}">Edit Profile</a>
+    {% if not user.is_premium %}
+        <a href="{% url 'toggle_premium' %}">Become Premium</a>
+    {% else %}
+        <a href="{% url 'toggle_premium' %}">Cancel Premium</a>
+    {% endif %}
+{% endif %}
+
+
+
+
 {% if user.is_authenticated and user != user_profile %}
     <a href="{% url 'toggle_follow' user_profile.username %}">
         {% if is_following %}

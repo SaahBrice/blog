@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Search Articles</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Search</button>
+</form>
+
+{% if articles %}
+    <h3>Search Results</h3>
+    <ul>
+    {% for article in articles %}
+        <li>
+            <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
+            by {{ article.author.username }}
+            ({{ article.published_at|date:"F d, Y" }})
+            <br>
+            Tags: 
+            {% for tag in article.tags.all %}
+                {{ tag.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </li>
+    {% endfor %}
+    </ul>
+{% elif request.method == 'POST' %}
+    <p>No articles found matching your criteria.</p>
+{% endif %}
+{% endblock %}

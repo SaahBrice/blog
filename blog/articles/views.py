@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from users.models import User
 from users.services import toggle_follow
 from notifications.services import create_notification
+from django.db import transaction
 
 
 class ArticleListView(ListView):
@@ -137,16 +138,22 @@ def toggle_reaction(request, pk):
     if reaction_type not in dict(Reaction.REACTION_TYPES):
         return JsonResponse({'error': 'Invalid reaction type'}, status=400)
     
-    reaction, created = Reaction.objects.get_or_create(
-        user=request.user,
-        article=article,
-        reaction_type=reaction_type
-    )
+    with transaction.atomic():
+        reaction, created = Reaction.objects.get_or_create(
+            user=request.user,
+            article=article,
+            reaction_type=reaction_type,
+            defaults={'count': 1}
+        )
     
-    if created:
-        create_notification(article.author, reaction_type, sender=request.user, article=article)
-    else:
-        reaction.delete()
+        if not created:
+            if reaction.count < 100:
+                reaction.count += 1
+                reaction.save()
+            else:
+                return JsonResponse({'error': 'Maximum reaction count reached'}, status=400)
+    
+    create_notification(article.author, reaction_type, sender=request.user, article=article)
     
     return JsonResponse({
         'clap_count': article.clap_count,

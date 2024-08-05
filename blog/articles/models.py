@@ -74,12 +74,19 @@ class Reaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='reactions')
     reaction_type = models.CharField(max_length=5, choices=REACTION_TYPES)
+    count = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'article', 'reaction_type')
 
+    def clean(self):
+        if self.count > 100:
+            raise ValidationError("You can't react more than 100 times to an article.")
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 

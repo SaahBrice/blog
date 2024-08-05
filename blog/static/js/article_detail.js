@@ -39,9 +39,13 @@ $(document).ready(function() {
         $.post(`/articles/${articleId}/react/`, {
             reaction_type: reactionType
         }, function(data) {
-            $('#clap-count').text(data.clap_count);
-            $('#sad-count').text(data.sad_count);
-            $('#laugh-count').text(data.laugh_count);
+            if (data.error) {
+                alert(data.error);
+            } else {
+                $('#clap-count').text(data.clap_count);
+                $('#sad-count').text(data.sad_count);
+                $('#laugh-count').text(data.laugh_count);
+            }
         });
     });
 });
