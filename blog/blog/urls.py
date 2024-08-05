@@ -25,6 +25,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('articles/', include('articles.urls')),
     path('search/', include('search.urls')),
+    path('notifications/', include('notifications.urls')),
 ]
 
 # Serve media files in development

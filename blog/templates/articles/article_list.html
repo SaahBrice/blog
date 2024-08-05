@@ -15,6 +15,14 @@
 {% endif %}
 
 <ul>
+{% if recommended_articles %}
+    <h3>Recommended for You</h3>
+    <ul>
+        {% for article in recommended_articles %}
+            <li><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></li>
+        {% endfor %}
+    </ul>
+{% endif %}
 {% for article in articles %}
     <li>
         <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>

@@ -78,3 +78,11 @@ def toggle_block_view(request, username):
     else:
         messages.success(request, f"You have unblocked {username}")
     return redirect('user_profile', username=username)
+
+class ActivityFeedView(LoginRequiredMixin, ListView):
+    model = Article
+    template_name = 'users/activity_feed.html'
+    context_object_name = 'articles'
+
+    def get_queryset(self):
+        return Article.get_recent_articles_for_user(self.request.user)

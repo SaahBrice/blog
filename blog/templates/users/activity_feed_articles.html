@@ -1,0 +1,8 @@
+{% for article in articles %}
+    <div class="article">
+        <h3><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></h3>
+        <p>by {{ article.author.username }} on {{ article.published_at|date:"F d, Y" }}</p>
+    </div>
+{% empty %}
+    <p>No recent articles from people you follow.</p>
+{% endfor %}

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 
 {% block content %}
 <h2>{{ article.title }}</h2>
@@ -8,6 +10,10 @@
     <a href="{% url 'article_by_tag' tag.slug %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
 {% endfor %}</p>
 <div>{{ article.content }}</div>
+
+
+
+
 {% if user == article.author %}
     <a href="{% url 'article_update' article.pk %}">Edit Article</a>
 {% endif %}
@@ -23,6 +29,23 @@
 {% endfor %}
 
 {% if user.is_authenticated %}
+    <button id="followAuthorBtn" data-author-id="{{ article.author.id }}">
+        {% if is_following %}Unfollow{% else %}Follow{% endif %} Author
+    </button>
+    <button id="bookmarkBtn" data-article-id="{{ article.id }}">
+        {% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
+    </button>
+    <div class="reactions">
+        <button class="reaction-btn" data-type="clap" data-article-id="{{ article.id }}">
+            👏 <span id="clap-count">{{ article.clap_count }}</span>
+        </button>
+        <button class="reaction-btn" data-type="sad" data-article-id="{{ article.id }}">
+            😢 <span id="sad-count">{{ article.sad_count }}</span>
+        </button>
+        <button class="reaction-btn" data-type="laugh" data-article-id="{{ article.id }}">
+            😂 <span id="laugh-count">{{ article.laugh_count }}</span>
+        </button>
+    </div>
     <h4>Add a comment</h4>
     <form method="post" action="{% url 'comment_create' article.pk %}">
         {% csrf_token %}
@@ -32,4 +55,8 @@
 {% else %}
     <p>Please <a href="{% url 'account_login' %}">log in</a> to comment.</p>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/article_detail.js' %}"></script>
 {% endblock %}

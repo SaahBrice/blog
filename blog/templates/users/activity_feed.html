@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h2>Activity Feed</h2>
+<div id="articles-container">
+    {% include "users/activity_feed_articles.html" %}
+</div>
+{% if page_obj.has_next %}
+    <button id="load-more" data-page="{{ page_obj.next_page_number }}">Load More</button>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/activity_feed.js' %}"></script>
+{% endblock %}

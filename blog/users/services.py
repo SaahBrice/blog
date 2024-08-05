@@ -1,4 +1,5 @@
 from .models import User
+from notifications.services import create_notification
 
 def toggle_follow(user, user_to_follow):
     if user == user_to_follow or user.blocked_users.filter(id=user_to_follow.id).exists():
@@ -8,6 +9,7 @@ def toggle_follow(user, user_to_follow):
         return False
     else:
         user.following.add(user_to_follow)
+        create_notification(user_to_follow, 'follow', sender=user)
         return True
 
 def toggle_block(user, user_to_block):

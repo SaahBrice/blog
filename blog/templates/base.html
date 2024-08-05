@@ -2,9 +2,17 @@
 <html>
 <head>
     <title>{% block title %}237APP{% endblock %}</title>
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous">
+    </script>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
+    {% csrf_token %}
     <header>
+        
         <nav>
             <a href="{% url 'article_list' %}">Home</a>
             <a href="{% url 'user_list' %}">All Users</a>
@@ -13,7 +21,8 @@
                     <input type="text" name="q" placeholder="Search articles">
                     <button type="submit">Search</button>
                 </form>
-                
+                <a href="{% url 'notification_list' %}">Notifications ({{ user.unread_notifications_count }})</a>
+                <a href="{% url 'activity_feed' %}">Activity Feed</a>
                 <a href="{% url 'following_list' %}">Following</a>
                 <a href="{% url 'followers_list' %}">Followers</a>
                 <a href="{% url 'user_profile' user.username %}">Profile</a>
@@ -32,5 +41,6 @@
     <footer>
         <!-- Add footer content here -->
     </footer>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

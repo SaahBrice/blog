@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserListView, UserProfileView, UserProfileUpdateView, FollowingListView, FollowersListView, toggle_follow_view, toggle_block_view
+from .views import ActivityFeedView, UserListView, UserProfileView, UserProfileUpdateView, FollowingListView, FollowersListView, toggle_follow_view, toggle_block_view
 
 urlpatterns = [
     path('', UserListView.as_view(), name='user_list'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('followers/', FollowersListView.as_view(), name='followers_list'),
     path('follow/<str:username>/', toggle_follow_view, name='toggle_follow'),
     path('block/<str:username>/', toggle_block_view, name='toggle_block'),
+    path('feed/', ActivityFeedView.as_view(), name='activity_feed'),
 ]

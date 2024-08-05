@@ -10,5 +10,8 @@ class User(AbstractUser):
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers')
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by')
 
+    def unread_notifications_count(self):
+        return self.notifications.filter(is_read=False).count()
+    
     def __str__(self):
         return self.username
