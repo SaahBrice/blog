@@ -1,0 +1,29 @@
+.reaction-container {
+    display: inline-block;
+    position: relative;
+    margin-right: 10px;
+}
+
+.reaction-btn {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.reaction-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 5px;
+    z-index: 1000;
+}
+
+.reaction-amount {
+    display: block;
+    width: 100%;
+    padding: 5px;
+    margin: 2px 0;
+    text-align: center;
+    cursor: pointer;
+}

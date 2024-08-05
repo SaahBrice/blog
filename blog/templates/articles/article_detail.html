@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
+{% load article_tags %}
 
+<link rel="stylesheet" href="{% static 'css/reaction.css' %}">
 
 {% block content %}
 <h2>{{ article.title }}</h2>
@@ -45,15 +47,22 @@
         {% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
     </button>
     <div class="reactions">
-        <button class="reaction-btn" data-type="clap" data-article-id="{{ article.id }}">
-            👏 <span id="clap-count">{{ article.clap_count }}</span>
-        </button>
-        <button class="reaction-btn" data-type="sad" data-article-id="{{ article.id }}">
-            😢 <span id="sad-count">{{ article.sad_count }}</span>
-        </button>
-        <button class="reaction-btn" data-type="laugh" data-article-id="{{ article.id }}">
-            😂 <span id="laugh-count">{{ article.laugh_count }}</span>
-        </button>
+        {% for reaction_type in "clap,sad,laugh"|split:"," %}
+            <div class="reaction-container">
+                <button class="reaction-btn" data-type="{{ reaction_type }}" data-article-id="{{ article.id }}">
+                    {% if reaction_type == "clap" %}👏
+                    {% elif reaction_type == "sad" %}😢
+                    {% elif reaction_type == "laugh" %}😂
+                    {% endif %}
+                    <span id="{{ reaction_type }}-count">{{ article|get_reaction_count:reaction_type }}</span>
+                </button>
+                <div class="reaction-options" style="display:none;">
+                    <button class="reaction-amount" data-amount="10">+10</button>
+                    <button class="reaction-amount" data-amount="50">+50</button>
+                    <button class="reaction-amount" data-amount="100">+100</button>
+                </div>
+            </div>
+        {% endfor %}
     </div>
     <h4>Add a comment</h4>
     <form method="post" action="{% url 'comment_create' article.pk %}">

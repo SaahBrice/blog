@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.forms import ValidationError
 from taggit.managers import TaggableManager
 from django.utils import timezone
 
@@ -47,18 +48,21 @@ class Article(models.Model):
             recommended = (list(recommended) + list(recent))[:limit]
         
         return recommended[:limit]
+        
+    def reaction_count(self, reaction_type):
+        return self.reactions.filter(reaction_type=reaction_type).aggregate(total=models.Sum('count'))['total'] or 0
 
     @property
     def clap_count(self):
-        return self.reactions.filter(reaction_type='clap').count()
+        return self.reaction_count('clap')
 
     @property
     def sad_count(self):
-        return self.reactions.filter(reaction_type='sad').count()
+        return self.reaction_count('sad')
 
     @property
     def laugh_count(self):
-        return self.reactions.filter(reaction_type='laugh').count()
+        return self.reaction_count('laugh')
 
 
     def __str__(self):
@@ -74,8 +78,9 @@ class Reaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='reactions')
     reaction_type = models.CharField(max_length=5, choices=REACTION_TYPES)
-    count = models.PositiveIntegerField(default=1)
+    count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('user', 'article', 'reaction_type')

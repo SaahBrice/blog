@@ -14,7 +14,7 @@ from users.models import User
 from users.services import toggle_follow
 from notifications.services import create_notification
 from django.db import transaction
-
+from django.db import IntegrityError
 
 class ArticleListView(ListView):
     model = Article
@@ -134,27 +134,28 @@ def toggle_follow_author(request, author_id):
 def toggle_reaction(request, pk):
     article = get_object_or_404(Article, pk=pk)
     reaction_type = request.POST.get('reaction_type')
-    
+    amount = int(request.POST.get('amount', 1))
+
     if reaction_type not in dict(Reaction.REACTION_TYPES):
         return JsonResponse({'error': 'Invalid reaction type'}, status=400)
-    
+
+    if amount not in [10, 50, 100]:
+        return JsonResponse({'error': 'Invalid reaction amount'}, status=400)
+
     with transaction.atomic():
         reaction, created = Reaction.objects.get_or_create(
             user=request.user,
             article=article,
             reaction_type=reaction_type,
-            defaults={'count': 1}
+            defaults={'count': 0}
         )
-    
-        if not created:
-            if reaction.count < 100:
-                reaction.count += 1
-                reaction.save()
-            else:
-                return JsonResponse({'error': 'Maximum reaction count reached'}, status=400)
-    
+
+        new_count = min(reaction.count + amount, 100)
+        reaction.count = new_count
+        reaction.save()
+
     create_notification(article.author, reaction_type, sender=request.user, article=article)
-    
+
     return JsonResponse({
         'clap_count': article.clap_count,
         'sad_count': article.sad_count,

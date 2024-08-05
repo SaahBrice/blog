@@ -31,23 +31,46 @@ $(document).ready(function() {
         });
     });
 
-    $('.reaction-btn').click(function() {
-        var btn = $(this);
-        var reactionType = btn.data('type');
-        var articleId = btn.data('article-id');
+    $('.reaction-btn').click(function(e) {
+        e.preventDefault();
+        $(this).siblings('.reaction-options').toggle();
+    });
+
+
+    $('.reaction-amount').click(function() {
+        const amount = $(this).data('amount');
+        const reactionType = $(this).closest('.reaction-container').find('.reaction-btn').data('type');
+        const articleId = $(this).closest('.reaction-container').find('.reaction-btn').data('article-id');
         
-        $.post(`/articles/${articleId}/react/`, {
-            reaction_type: reactionType
-        }, function(data) {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                $('#clap-count').text(data.clap_count);
-                $('#sad-count').text(data.sad_count);
-                $('#laugh-count').text(data.laugh_count);
+        $.ajax({
+            url: `/articles/${articleId}/react/`,
+            type: 'POST',
+            data: {
+                reaction_type: reactionType,
+                amount: amount
+            },
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(data) {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Update all reaction counts
+                    $(`#clap-count`).text(data.clap_count);
+                    $(`#sad-count`).text(data.sad_count);
+                    $(`#laugh-count`).text(data.laugh_count);
+                }
+                // Hide the reaction options after selection
+                $('.reaction-options').hide();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error in reaction:", textStatus, errorThrown);
+                alert("An error occurred while processing your reaction.");
             }
         });
     });
+
 });
 
 // Helper function to get CSRF token from cookies
