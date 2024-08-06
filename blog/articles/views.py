@@ -78,7 +78,17 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         article = get_object_or_404(Article, pk=self.kwargs['pk'])
         form.instance.article = article
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response=super().form_valid(form)
+
+        # Create notification for the article author
+        create_notification(
+            recipient=article.author,
+            notification_type='comment',
+            sender=self.request.user,
+            article=article,
+            comment=self.object
+        )
+        return response
 
     def get_success_url(self):
         return reverse_lazy('article_detail', kwargs={'pk': self.kwargs['pk']})
@@ -241,13 +251,27 @@ def toggle_comment_reaction(request, comment_id):
         article_reaction.count = min(article_reaction.count + amount, 100)
         article_reaction.save()
 
+
+        # Notify the comment author
+        create_notification(
+            recipient=comment.author,
+            notification_type='comment_reaction',
+            sender=request.user,
+            article=article,
+            comment=comment
+        )
+
     return JsonResponse({
         'clap_count': comment.clap_count,
         'laugh_count': comment.laugh_count,
         'sad_count': comment.sad_count,
         'article_clap_count': article.clap_count
     })
+
+
+
 @login_required
+@require_POST
 def add_reply(request, comment_id):
     parent_comment = get_object_or_404(Comment, id=comment_id)
     if request.method == 'POST':
@@ -258,8 +282,20 @@ def add_reply(request, comment_id):
             content=content,
             parent=parent_comment
         )
+        
+        # Notify the parent comment author
+        create_notification(
+            recipient=parent_comment.author,
+            notification_type='reply',
+            sender=request.user,
+            article=parent_comment.article,
+            comment=reply
+        )
+        
         return redirect('article_detail', pk=parent_comment.article.pk)
     return redirect('article_detail', pk=parent_comment.article.pk)
+
+
 
 def get_tags(request):
     query = request.GET.get('query', '')
