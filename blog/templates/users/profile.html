@@ -28,7 +28,6 @@
 
 
 {% if user == user_profile %}
-    <a href="{% url 'user_profile_edit' %}">Edit Profile</a>
     {% if not user.is_premium %}
         <a href="{% url 'toggle_premium' %}">Become Premium</a>
     {% else %}
@@ -54,12 +53,14 @@
             Block
         {% endif %}
     </a>
-{% endif %}
 
+
+{% endif %}
 {% if user == user_profile %}
     <a href="{% url 'user_profile_edit' %}">Edit Profile</a>
     <a href="{% url 'followers_list' %}">View Followers</a>
 {% endif %}
+
 
 <h3>Recent Articles</h3>
 <ul>
