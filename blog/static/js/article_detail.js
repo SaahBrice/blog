@@ -71,7 +71,7 @@ $(document).ready(function() {
         });
     });
 
-    $(document).on('click', '.comment-reaction', function(e) {
+    $(document).on('click', '.comment-reaction, .reply .comment-reaction', function(e) {
         e.preventDefault();
         const btn = $(this);
         const commentId = btn.data('comment-id');
@@ -79,7 +79,7 @@ $(document).ready(function() {
         btn.siblings('.reaction-options').toggle();
     });
     
-    $(document).on('click', '.comment-reaction-amount', function() {
+    $(document).on('click', '.comment-reaction-amount, .reply .comment-reaction-amount', function() {
         const btn = $(this);
         const amount = btn.data('amount');
         const commentId = btn.closest('.comment-reactions').data('comment-id');

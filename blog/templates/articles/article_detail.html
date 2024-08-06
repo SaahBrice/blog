@@ -52,22 +52,28 @@
                     </div>
                 {% endfor %}
             </div>
-
-            <div class="replies" style="margin-left: 20px;">
+            <div class="replies" style="margin-left: 50px;">
                 {% for reply in comment.replies.all %}
                     <div class="reply">
                         <p>{{ reply.content }}</p>
                         <small>By {{ reply.author.username }} on {{ reply.created_at }}</small>
-                        <div class="comment-reactions">
-                            <button class="comment-reaction" data-type="clap" data-comment-id="{{ reply.id }}">
-                                👏 (<span class="clap-count">{{ reply.clap_count }}</span>)
-                            </button>
-                            <button class="comment-reaction" data-type="laugh" data-comment-id="{{ reply.id }}">
-                                😂 (<span class="laugh-count">{{ reply.laugh_count }}</span>)
-                            </button>
-                            <button class="comment-reaction" data-type="sad" data-comment-id="{{ reply.id }}">
-                                😢 (<span class="sad-count">{{ reply.sad_count }}</span>)
-                            </button>
+                        <div class="comment-reactions" data-comment-id="{{ reply.id }}">
+                            {% for reaction_type in "clap,laugh,sad"|split:"," %}
+                                <div class="comment-reaction-container">
+                                    <button class="comment-reaction" data-type="{{ reaction_type }}" data-comment-id="{{ reply.id }}">
+                                        {% if reaction_type == "clap" %}👏
+                                        {% elif reaction_type == "laugh" %}😂
+                                        {% elif reaction_type == "sad" %}😢
+                                        {% endif %}
+                                        <span class="{{ reaction_type }}-count">{{ reply|get_comment_reaction_count:reaction_type }}</span>
+                                    </button>
+                                    <div class="reaction-options" style="display:none;">
+                                        <button class="comment-reaction-amount" data-amount="10">+10</button>
+                                        <button class="comment-reaction-amount" data-amount="50">+50</button>
+                                        <button class="comment-reaction-amount" data-amount="100">+100</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
                 {% endfor %}
