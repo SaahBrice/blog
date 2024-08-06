@@ -64,6 +64,16 @@ class Article(models.Model):
     def laugh_count(self):
         return self.reaction_count('laugh')
 
+    @property
+    def total_reactions(self):
+        return self.reactions.aggregate(total=models.Sum('count'))['total'] or 0
+
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
+
+
 
     def __str__(self):
         return self.title
@@ -102,6 +112,34 @@ class Comment(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+
+    @property
+    def clap_count(self):
+        return self.reactions.filter(reaction_type='clap').count()
+
+    @property
+    def laugh_count(self):
+        return self.reactions.filter(reaction_type='laugh').count()
+
+    @property
+    def sad_count(self):
+        return self.reactions.filter(reaction_type='sad').count()
 
     def __str__(self):
         return f'Comment by {self.author.username} on {self.article.title}'
+        
+
+class CommentReaction(models.Model):
+    REACTION_TYPES = (
+        ('clap', 'Clap'),
+        ('laugh', 'Laugh'),
+        ('sad', 'Sad'),
+    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='reactions')
+    reaction_type = models.CharField(max_length=5, choices=REACTION_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'comment', 'reaction_type')

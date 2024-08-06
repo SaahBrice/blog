@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
-from .models import Article, Comment, Reaction
+from .models import Article, Comment, Reaction, CommentReaction
 from .forms import ArticleForm, CommentForm
 from taggit.models import Tag
 from django.http import JsonResponse
@@ -15,19 +15,45 @@ from users.services import toggle_follow
 from notifications.services import create_notification
 from django.db import transaction
 from django.db import IntegrityError
+from django.db.models import Count
+
+
+
 
 class ArticleListView(ListView):
     model = Article
     template_name = 'articles/article_list.html'
     context_object_name = 'articles'
-    queryset = Article.objects.filter(status='published').order_by('-published_at')
 
+    def get_queryset(self):
+        return Article.objects.filter(status='published').order_by('-published_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            context['recommended_articles'] = Article.get_recommended_articles(self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            # New articles
+            context['new_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:5]
+            
+            # Articles from followees
+            followee_articles = Article.objects.filter(
+                author__in=user.following.all(),
+                status='published'
+            ).annotate(interaction_count=Count('reactions') + Count('comments')).order_by('-interaction_count')[:5]
+            context['followee_articles'] = followee_articles
+            
+            # Discover articles
+            user_tags = Article.objects.filter(reactions__user=user).values_list('tags__name', flat=True).distinct()
+            discover_articles = Article.objects.filter(status='published').exclude(
+                tags__name__in=user_tags
+            ).order_by('?')[:5]
+            context['discover_articles'] = discover_articles
+        
         return context
+
+
+
+
 
 class ArticleDetailView(DetailView):
     model = Article
@@ -38,7 +64,7 @@ class ArticleDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             context['is_following'] = self.request.user.following.filter(id=self.object.author.id).exists()
-            context['is_bookmarked'] = self.object.is_bookmarked_by(self.request.user)
+            context['is_bookmarked'] = self.object.bookmarks.filter(id=self.request.user.id).exists()
             context['comment_form'] = CommentForm()
             context['user_reactions'] = Reaction.objects.filter(user=self.request.user,article=self.object).values_list('reaction_type', flat=True)
         return context
@@ -161,3 +187,74 @@ def toggle_reaction(request, pk):
         'sad_count': article.sad_count,
         'laugh_count': article.laugh_count,
     })
+
+
+
+
+
+class BookmarkedArticlesView(LoginRequiredMixin, ListView):
+    model = Article
+    template_name = 'articles/bookmarked_articles.html'
+    context_object_name = 'articles'
+
+    def get_queryset(self):
+        return self.request.user.bookmarked_articles.all()
+
+@login_required
+def remove_bookmark(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    article.bookmarks.remove(request.user)
+    return redirect('bookmarked_articles')
+
+@login_required
+def toggle_comment_reaction(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    reaction_type = request.POST.get('reaction_type')
+
+    if reaction_type not in dict(CommentReaction.REACTION_TYPES):
+        return JsonResponse({'error': 'Invalid reaction type'}, status=400)
+
+    reaction, created = CommentReaction.objects.get_or_create(
+        user=request.user,
+        comment=comment,
+        reaction_type=reaction_type
+    )
+
+    if not created:
+        reaction.delete()
+
+    # Update article's reaction count
+    article = comment.article
+    article_reaction, _ = Reaction.objects.get_or_create(
+        user=request.user,
+        article=article,
+        reaction_type='clap'
+    )
+    article_reaction.count = min(article_reaction.count + 1, 100)
+    article_reaction.save()
+
+    return JsonResponse({
+        'clap_count': comment.clap_count,
+        'laugh_count': comment.laugh_count,
+        'sad_count': comment.sad_count,
+        'article_reaction_count': article.total_reactions
+    })
+
+@login_required
+def add_reply(request, comment_id):
+    parent_comment = get_object_or_404(Comment, id=comment_id)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        reply = Comment.objects.create(
+            article=parent_comment.article,
+            author=request.user,
+            content=content,
+            parent=parent_comment
+        )
+        return redirect('article_detail', pk=parent_comment.article.pk)
+    return redirect('article_detail', pk=parent_comment.article.pk)
+
+def get_tags(request):
+    query = request.GET.get('query', '')
+    tags = Tag.objects.filter(name__icontains=query).values_list('name', flat=True)
+    return JsonResponse(list(tags), safe=False)

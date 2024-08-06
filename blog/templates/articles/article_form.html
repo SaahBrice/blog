@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.default.min.css">
+{% endblock %}
 
 {% block content %}
 <h2>{% if form.instance.pk %}Edit Article{% else %}Create New Article{% endif %}</h2>
@@ -7,4 +12,9 @@
     {{ form.as_p }}
     <button type="submit">Save</button>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js"></script>
+<script src="{% static 'js/article_form.js' %}"></script>
 {% endblock %}

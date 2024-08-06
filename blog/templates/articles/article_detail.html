@@ -17,6 +17,7 @@
         <span class="badge">Writer</span>
     {% endif %}</p>
 <p>Published: {{ article.published_at }}</p>
+
 <p>Tags: {% for tag in article.tags.all %}
     <a href="{% url 'article_by_tag' tag.slug %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
 {% endfor %}</p>
@@ -29,11 +30,37 @@
     <a href="{% url 'article_update' article.pk %}">Edit Article</a>
 {% endif %}
 
-<h3>Comments</h3>
+<h3>Comments ({{ article.comment_count }})</h3>
 {% for comment in article.comments.all %}
-    <div>
+    <div class="comment">
         <p>{{ comment.content }}</p>
         <small>By {{ comment.author.username }} on {{ comment.created_at }}</small>
+
+        <div class="comment-reactions">
+            <button class="comment-reaction" data-type="clap" data-comment-id="{{ comment.id }}">
+                👏 (<span class="clap-count">{{ comment.clap_count }}</span>)
+            </button>
+            <button class="comment-reaction" data-type="laugh" data-comment-id="{{ comment.id }}">
+                😂 (<span class="laugh-count">{{ comment.laugh_count }}</span>)
+            </button>
+            <button class="comment-reaction" data-type="sad" data-comment-id="{{ comment.id }}">
+                😢 (<span class="sad-count">{{ comment.sad_count }}</span>)
+            </button>
+        </div>
+
+        <div class="replies">
+            {% for reply in comment.replies.all %}
+                <div class="reply">
+                    <p>{{ reply.content }}</p>
+                    <small>By {{ reply.author.username }} on {{ reply.created_at }}</small>
+                </div>
+            {% endfor %}
+        </div>
+        <form method="post" action="{% url 'add_reply' comment.id %}" class="reply-form">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Write a reply...">
+            <button type="submit">Reply</button>
+        </form>
     </div>
 {% empty %}
     <p>No comments yet.</p>

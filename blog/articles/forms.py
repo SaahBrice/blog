@@ -1,5 +1,6 @@
 from django import forms
 from .models import Article, Comment
+from taggit.forms import TagWidget
 
 class ArticleForm(forms.ModelForm):
     class Meta:
@@ -7,7 +8,7 @@ class ArticleForm(forms.ModelForm):
         fields = ['title', 'content', 'language', 'status', 'tags']
         widgets = {
             'content': forms.Textarea(attrs={'rows': 10}),
-            'tags': forms.TextInput(attrs={'placeholder': 'Enter tags separated by commas'}),
+            'tags': TagWidget(),
         }
 
 class CommentForm(forms.ModelForm):

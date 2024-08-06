@@ -71,6 +71,69 @@ $(document).ready(function() {
         });
     });
 
+    $('.comment-reaction').click(function() {
+        const btn = $(this);
+        const commentId = btn.data('comment-id');
+        const reactionType = btn.data('type');
+        
+        $.ajax({
+            url: `/articles/comment/${commentId}/react/`,
+            type: 'POST',
+            data: {
+                reaction_type: reactionType
+            },
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(data) {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    btn.find('.like-count').text(data.like_count);
+                    btn.find('.dislike-count').text(data.dislike_count);
+                    // Update article reaction count
+                    $('#total-reactions').text(data.article_reaction_count);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error in comment reaction:", textStatus, errorThrown);
+                alert("An error occurred while processing your reaction.");
+            }
+        });
+    });
+
+    $('.comment-reaction').click(function() {
+        const btn = $(this);
+        const commentId = btn.data('comment-id');
+        const reactionType = btn.data('type');
+        
+        $.ajax({
+            url: `/articles/comment/${commentId}/react/`,
+            type: 'POST',
+            data: {
+                reaction_type: reactionType
+            },
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(data) {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    btn.find('.clap-count').text(data.clap_count);
+                    btn.find('.laugh-count').text(data.laugh_count);
+                    btn.find('.sad-count').text(data.sad_count);
+                    // Update article reaction count
+                    $('#total-reactions').text(data.article_reaction_count);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error in comment reaction:", textStatus, errorThrown);
+                alert("An error occurred while processing your reaction.");
+            }
+        });
+    });
+
 });
 
 // Helper function to get CSRF token from cookies
