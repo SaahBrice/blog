@@ -116,15 +116,15 @@ class Comment(models.Model):
 
     @property
     def clap_count(self):
-        return self.reactions.filter(reaction_type='clap').count()
+        return self.reactions.filter(reaction_type='clap').aggregate(total=models.Sum('count'))['total'] or 0
 
     @property
     def laugh_count(self):
-        return self.reactions.filter(reaction_type='laugh').count()
+        return self.reactions.filter(reaction_type='laugh').aggregate(total=models.Sum('count'))['total'] or 0
 
     @property
     def sad_count(self):
-        return self.reactions.filter(reaction_type='sad').count()
+        return self.reactions.filter(reaction_type='sad').aggregate(total=models.Sum('count'))['total'] or 0
 
     def __str__(self):
         return f'Comment by {self.author.username} on {self.article.title}'
@@ -140,6 +140,17 @@ class CommentReaction(models.Model):
     comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='reactions')
     reaction_type = models.CharField(max_length=5, choices=REACTION_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    count = models.PositiveIntegerField(default=0)
+
+    def clean(self):
+        if self.count > 100:
+            raise ValidationError("You can't react more than 100 times to a comment.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 
     class Meta:
         unique_together = ('user', 'comment', 'reaction_type')

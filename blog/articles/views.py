@@ -207,39 +207,46 @@ def remove_bookmark(request, pk):
     return redirect('bookmarked_articles')
 
 @login_required
+@require_POST
 def toggle_comment_reaction(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
     reaction_type = request.POST.get('reaction_type')
+    amount = int(request.POST.get('amount', 10))  # Default to 10 if not provided
 
     if reaction_type not in dict(CommentReaction.REACTION_TYPES):
         return JsonResponse({'error': 'Invalid reaction type'}, status=400)
 
-    reaction, created = CommentReaction.objects.get_or_create(
-        user=request.user,
-        comment=comment,
-        reaction_type=reaction_type
-    )
+    if amount not in [10, 50, 100]:
+        return JsonResponse({'error': 'Invalid reaction amount'}, status=400)
 
-    if not created:
-        reaction.delete()
+    with transaction.atomic():
+        reaction, created = CommentReaction.objects.get_or_create(
+            user=request.user,
+            comment=comment,
+            reaction_type=reaction_type,
+            defaults={'count': 0}
+        )
 
-    # Update article's reaction count
-    article = comment.article
-    article_reaction, _ = Reaction.objects.get_or_create(
-        user=request.user,
-        article=article,
-        reaction_type='clap'
-    )
-    article_reaction.count = min(article_reaction.count + 1, 100)
-    article_reaction.save()
+        new_count = min(reaction.count + amount, 100)
+        reaction.count = new_count
+        reaction.save()
+
+        # Update article's clap reaction count
+        article = comment.article
+        article_reaction, _ = Reaction.objects.get_or_create(
+            user=request.user,
+            article=article,
+            reaction_type='clap'
+        )
+        article_reaction.count = min(article_reaction.count + amount, 100)
+        article_reaction.save()
 
     return JsonResponse({
         'clap_count': comment.clap_count,
         'laugh_count': comment.laugh_count,
         'sad_count': comment.sad_count,
-        'article_reaction_count': article.total_reactions
+        'article_clap_count': article.clap_count
     })
-
 @login_required
 def add_reply(request, comment_id):
     parent_comment = get_object_or_404(Comment, id=comment_id)

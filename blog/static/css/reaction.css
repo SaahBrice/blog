@@ -27,3 +27,24 @@
     text-align: center;
     cursor: pointer;
 }
+
+
+.comment-reaction-container {
+    display: inline-block;
+    position: relative;
+    margin-right: 10px;
+}
+
+.comment-reaction {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.comment-reaction-amount {
+    display: block;
+    width: 100%;
+    padding: 3px;
+    margin: 2px 0;
+    text-align: center;
+    cursor: pointer;
+}
