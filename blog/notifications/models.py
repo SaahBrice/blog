@@ -4,12 +4,13 @@ from django.conf import settings
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
         ('follow', 'New Follower'),
-        ('comment', 'New Comment'),
-        ('comment_reaction', 'New Comment Reaction'),
-        ('reply', 'New Reply'),
-        ('clap', 'New Clap'),
-        ('sad', 'New Sad Reaction'),
-        ('laugh', 'New Laugh Reaction'),
+        ('comment', 'Commented on'),
+        ('comment_reaction', 'Reacted to your comment on'),
+        ('reply', 'Replied to your comment on'),
+        ('clap', 'Reacted Clap on your post'),
+        ('sad', 'Reacted Sad on your post'),
+        ('laugh', 'Reacted Sad on your post'),
+        ('mention', 'Mentioned you on'),
     )
     
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')

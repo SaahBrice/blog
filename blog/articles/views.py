@@ -19,7 +19,8 @@ from django.db.models import Count
 import re
 from django.db.models import Q
 from django.template.loader import render_to_string
-
+from django.template import Template, Context
+from .templatetags.comment_tags import render_mentions
 
 class ArticleListView(ListView):
     model = Article
@@ -88,9 +89,13 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
                 notification_type='comment',
                 sender=self.request.user,
                 article=article,
-                comment=self.object
+                comment=comment
             )
         comment_html = render_to_string('articles/comment.html', {'comment': comment}, request=self.request)
+
+        # Apply render_mentions filter to the rendered HTML
+        #comment_html = Template("{% load comment_tags %}" + comment_html).render(Context({'comment': comment}))
+
         return JsonResponse({
             'success': True,
             'comment_html': comment_html,
@@ -330,6 +335,10 @@ def add_reply(request, comment_id):
         )
         
     reply_html = render_to_string('articles/comment.html', {'comment': reply}, request=request)
+
+    # Apply render_mentions filter to the rendered HTML
+    #reply_html = Template("{% load comment_tags %}" + reply_html).render(Context({'comment': reply}))
+
     return JsonResponse({
         'success': True,
         'reply_html': reply_html,

@@ -9,6 +9,7 @@ def create_notification(recipient, notification_type, sender=None, article=None,
         'clap': 'clapped for your article',
         'sad': 'reacted sad to your article',
         'laugh': 'reacted laugh at your article',
+        'mention': 'mentioned you in'
     }
     default_text = f"{sender} {action_verb[notification_type]}"
     return Notification.objects.create(

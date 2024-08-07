@@ -150,7 +150,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     // Prepend new comment to the list
-                    $('#comments-section').prepend(response.comment_html);
+                    $('#comments-section').prepend($(response.comment_html));
                     form.find('textarea').val('');
                     // Update comment count
                     $('#comment-count').text(response.comment_count);
@@ -177,7 +177,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     // Append new reply to the correct comment
-                    form.siblings('.replies').append(response.reply_html);
+                    form.siblings('.replies').append($(response.reply_html));
                     form.find('textarea').val('');
                     // Update comment count
                     $('#comment-count').text(response.comment_count);
