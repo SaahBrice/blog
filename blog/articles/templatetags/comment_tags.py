@@ -13,11 +13,11 @@ def render_mentions(value):
     def replace_mention(match):
         username = match.group(1)
         if username == 'followers':
-            return '@followers'
+            return '<span class="mention-followers">@followers</span>'
         user = User.objects.filter(username=username).first()
         if user:
             url = reverse('user_profile', kwargs={'username': username})
-            return f'<a href="{url}">@{username}</a>'
+            return f'<a href="{url}" class="mention-user">@{username}</a>'
         return f'@{username}'
     
     return mark_safe(re.sub(mention_pattern, replace_mention, value))

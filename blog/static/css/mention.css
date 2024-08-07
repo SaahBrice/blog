@@ -1,0 +1,19 @@
+.mention-user {
+    color: #1DA1F2;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.mention-user:hover {
+    color: #0c85d0;
+    text-decoration: underline;
+}
+
+.mention-followers {
+    color: #17a2b8;
+    font-weight: bold;
+    background-color: #e3f2fd;
+    padding: 2px 4px;
+    border-radius: 3px;
+}

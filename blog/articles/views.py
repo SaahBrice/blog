@@ -21,6 +21,9 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.template import Template, Context
 from .templatetags.comment_tags import render_mentions
+from django.db import connection
+from django.conf import settings
+from django.utils import timezone
 
 class ArticleListView(ListView):
     model = Article
@@ -82,7 +85,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
             form.instance.article = article
             form.instance.author = self.request.user
             comment = form.save()
-            self.process_mentions(comment)
+            self.process_mentions(comment,self.request.user)
             # Create notification for the article author
             create_notification(
                 recipient=article.author,
@@ -107,13 +110,15 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
 
         
-    def process_mentions(self, comment):
+    def process_mentions(comment, user):
         mention_pattern = r'@(\w+)'
         mentions = re.findall(mention_pattern, comment.content)
+        followers_mentioned = False
         for index, username in enumerate(mentions):
             if username == 'followers':
-                for follower in self.request.user.followers.all():
-                    Mention.objects.create(user=follower, comment=comment, position=index)
+                if not followers_mentioned:
+                    create_follower_notifications(user, comment.article, comment, 'mention')
+                    followers_mentioned = True
             else:
                 user = User.objects.filter(username=username).first()
                 if user:
@@ -121,7 +126,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
                     create_notification(
                         recipient=user,
                         notification_type='mention',
-                        sender=self.request.user,
+                        sender=user,
                         article=comment.article,
                         comment=comment
                     )
@@ -302,6 +307,7 @@ def toggle_comment_reaction(request, comment_id):
         )
 
     return JsonResponse({
+        'comment_id':comment.id,
         'clap_count': comment.clap_count,
         'laugh_count': comment.laugh_count,
         'sad_count': comment.sad_count,
@@ -345,13 +351,48 @@ def add_reply(request, comment_id):
         'comment_count': parent_comment.article.comment_count
     })
 
+
+
+
+def create_follower_notifications(sender, article, comment, notification_type):
+    current_time = timezone.now()
+    notification_text = f"{sender.username} mentioned all followers in a {'comment' if not comment.parent else 'reply'}"
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO notifications_notification (
+                recipient_id, sender_id, notification_type, article_id, comment_id, 
+                text, is_read, created_at
+            )
+            SELECT 
+                from_user_id, %s, %s, %s, %s, 
+                %s, %s, %s
+            FROM 
+                users_user_following
+            WHERE 
+                to_user_id = %s
+        """, [
+            sender.id, 
+            notification_type, 
+            article.id, 
+            comment.id, 
+            notification_text,
+            False,
+            current_time,
+            sender.id
+        ])
+
+
+
 def process_mentions(comment, user):
     mention_pattern = r'@(\w+)'
     mentions = re.findall(mention_pattern, comment.content)
+    followers_mentioned = False
     for index, username in enumerate(mentions):
         if username == 'followers':
-            for follower in user.followers.all():
-                Mention.objects.create(user=follower, comment=comment, position=index)
+            if not followers_mentioned:
+                create_follower_notifications(user, comment.article, comment, 'mention')
+                followers_mentioned = True
         else:
             mentioned_user = User.objects.filter(username=username).first()
             if mentioned_user:

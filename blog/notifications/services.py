@@ -1,4 +1,5 @@
 from .models import Notification
+from django.db import transaction
 
 def create_notification(recipient, notification_type, sender=None, article=None, comment=None, text=None):
     action_verb = {
@@ -12,11 +13,13 @@ def create_notification(recipient, notification_type, sender=None, article=None,
         'mention': 'mentioned you in'
     }
     default_text = f"{sender} {action_verb[notification_type]}"
-    return Notification.objects.create(
-        recipient=recipient,
-        sender=sender,
-        notification_type=notification_type,
-        article=article,
-        comment=comment,
-        text=text or default_text
-    )
+    with transaction.atomic():
+        notification = Notification.objects.create(
+            recipient=recipient,
+            sender=sender,
+            notification_type=notification_type,
+            article=article,
+            comment=comment,
+            text=text or default_text
+        )
+    return notification
