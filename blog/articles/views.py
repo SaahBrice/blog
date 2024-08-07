@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
-from .models import Article, Comment, Reaction, CommentReaction
+from .models import Mention, Article, Comment, Reaction, CommentReaction
 from .forms import ArticleForm, CommentForm
 from taggit.models import Tag
 from django.http import JsonResponse
@@ -16,8 +16,8 @@ from notifications.services import create_notification
 from django.db import transaction
 from django.db import IntegrityError
 from django.db.models import Count
-
-
+import re
+from django.db.models import Q
 
 
 class ArticleListView(ListView):
@@ -75,20 +75,43 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     http_method_names = ['post']
 
     def form_valid(self, form):
-        article = get_object_or_404(Article, pk=self.kwargs['pk'])
-        form.instance.article = article
-        form.instance.author = self.request.user
-        response=super().form_valid(form)
+        with transaction.atomic():
+            article = get_object_or_404(Article, pk=self.kwargs['pk'])
+            form.instance.article = article
+            form.instance.author = self.request.user
+            response=super().form_valid(form)
+            self.process_mentions(form.instance)
+            # Create notification for the article author
+            create_notification(
+                recipient=article.author,
+                notification_type='comment',
+                sender=self.request.user,
+                article=article,
+                comment=self.object
+            )
+            return response
+    def process_mentions(self, comment):
+        mention_pattern = r'@(\w+)'
+        mentions = re.findall(mention_pattern, comment.content)
+        for index, username in enumerate(mentions):
+            if username == 'followers':
+                for follower in self.request.user.followers.all():
+                    Mention.objects.create(user=follower, comment=comment, position=index)
+            else:
+                user = User.objects.filter(username=username).first()
+                if user:
+                    Mention.objects.create(user=user, comment=comment, position=index)
+                    create_notification(
+                        recipient=user,
+                        notification_type='mention',
+                        sender=self.request.user,
+                        article=comment.article,
+                        comment=comment
+                    )
 
-        # Create notification for the article author
-        create_notification(
-            recipient=article.author,
-            notification_type='comment',
-            sender=self.request.user,
-            article=article,
-            comment=self.object
-        )
-        return response
+
+
+
 
     def get_success_url(self):
         return reverse_lazy('article_detail', kwargs={'pk': self.kwargs['pk']})
@@ -276,12 +299,14 @@ def add_reply(request, comment_id):
     parent_comment = get_object_or_404(Comment, id=comment_id)
     if request.method == 'POST':
         content = request.POST.get('content')
-        reply = Comment.objects.create(
-            article=parent_comment.article,
-            author=request.user,
-            content=content,
-            parent=parent_comment
-        )
+        with transaction.atomic():
+            reply = Comment.objects.create(
+                article=parent_comment.article,
+                author=request.user,
+                content=content,
+                parent=parent_comment
+            )
+            process_mentions(reply, request.user)
         
         # Notify the parent comment author
         create_notification(
@@ -295,9 +320,44 @@ def add_reply(request, comment_id):
         return redirect('article_detail', pk=parent_comment.article.pk)
     return redirect('article_detail', pk=parent_comment.article.pk)
 
-
+def process_mentions(comment, user):
+    mention_pattern = r'@(\w+)'
+    mentions = re.findall(mention_pattern, comment.content)
+    for index, username in enumerate(mentions):
+        if username == 'followers':
+            for follower in user.followers.all():
+                Mention.objects.create(user=follower, comment=comment, position=index)
+        else:
+            mentioned_user = User.objects.filter(username=username).first()
+            if mentioned_user:
+                Mention.objects.create(user=mentioned_user, comment=comment, position=index)
+                create_notification(
+                    recipient=mentioned_user,
+                    notification_type='mention',
+                    sender=user,
+                    article=comment.article,
+                    comment=comment
+                )
 
 def get_tags(request):
     query = request.GET.get('query', '')
     tags = Tag.objects.filter(name__icontains=query).values_list('name', flat=True)
     return JsonResponse(list(tags), safe=False)
+
+
+
+def user_suggestions(request):
+    query = request.GET.get('query', '')
+    user = request.user
+    suggestions = list(User.objects.filter(
+        Q(username__istartswith=query) | Q(first_name__istartswith=query) | Q(last_name__istartswith=query)
+    ).exclude(id=user.id).values('id', 'username', 'first_name', 'last_name')[:10])
+    
+    if user.followers.exists() and '@followers'.startswith(query.lower()):
+        suggestions.append({'id': 'followers', 'username': '@followers', 'first_name': 'All', 'last_name': 'Followers'})
+
+    return JsonResponse([{
+        'id': suggestion['id'],
+        'username': suggestion['username'],
+        'name': f"{suggestion['first_name']} {suggestion['last_name']}".strip()
+    } for suggestion in suggestions], safe=False)

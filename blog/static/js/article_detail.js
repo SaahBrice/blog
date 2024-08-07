@@ -111,6 +111,74 @@ $(document).ready(function() {
         });
     });
 
+    // Tribute configuration for @mentions
+    var tribute = new Tribute({
+        values: function (text, cb) {
+            $.ajax({
+                url: '/articles/user-suggestions/',
+                data: { query: text },
+                success: function (data) {
+                    cb(data);
+                }
+            });
+        },
+        lookup: 'username',
+        fillAttr: 'username',
+        selectTemplate: function (item) {
+            return '@' + item.original.username;
+        }
+    });
+
+    // Initialize Tribute for main comment form
+    tribute.attach(document.querySelector('#comment-form textarea'));
+
+    // Initialize Tribute for existing reply forms
+    $('.reply-form textarea').each(function() {
+        tribute.attach(this);
+    });
+
+    // Handle main comment form submission
+    $('#comment-form').submit(function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var url = form.attr('action');
+        
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: form.serialize(),
+            success: function(response) {
+                // Append new comment to the list
+                $('#comments-section').append(response.comment_html);
+                form.find('textarea').val('');
+            }
+        });
+    });
+
+    // Handle reply form submissions (including dynamically added ones)
+    $(document).on('submit', '.reply-form', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var url = form.attr('action');
+        
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: form.serialize(),
+            success: function(response) {
+                // Append new reply to the correct comment
+                form.closest('.comment').find('.replies').append(response.reply_html);
+                form.find('textarea').val('');
+            }
+        });
+    });
+
+    // Initialize Tribute for dynamically added reply forms
+    $(document).on('focus', '.reply-form textarea', function() {
+        if (!this.tribute) {
+            tribute.attach(this);
+        }
+    });
 });
 
 // Helper function to get CSRF token from cookies

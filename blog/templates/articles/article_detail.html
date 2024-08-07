@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 {% load article_tags %}
-
+{% load comment_tags %}
+{% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/reaction.css' %}">
+<link rel="stylesheet" href="{% static 'css/tribute.css' %}">
+{% endblock %}
+</head>
 
 {% block content %}
 <h2>{{ article.title }}</h2>
@@ -80,7 +84,8 @@
             </div>
             <form method="post" action="{% url 'add_reply' comment.id %}" class="reply-form">
                 {% csrf_token %}
-                <input type="text" name="content" placeholder="Write a reply...">
+                <textarea name="content" placeholder="Write a reply..." class="mention-input"></textarea>
+                <div class="mention-autocomplete"></div>
                 <button type="submit">Reply</button>
             </form>
         </div>
@@ -115,9 +120,10 @@
         {% endfor %}
     </div>
     <h4>Add a comment</h4>
-    <form method="post" action="{% url 'comment_create' article.pk %}">
+    <form method="post" action="{% url 'comment_create' article.pk %}" id="comment-form">
         {% csrf_token %}
-        {{ comment_form.as_p }}
+        {{ comment_form.content }}
+        <div id="mention-autocomplete"></div>
         <button type="submit">Submit Comment</button>
     </form>
 {% else %}
@@ -127,4 +133,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/article_detail.js' %}"></script>
+<script src="{% static 'js/tribute.js' %}"></script>
 {% endblock %}

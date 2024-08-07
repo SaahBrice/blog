@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% load static %}
+
 <html>
 <head>
     <title>{% block title %}237APP{% endblock %}</title>
@@ -7,6 +9,12 @@
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
         crossorigin="anonymous">
     </script>
+    
+    <!-- Tribute.js CSS -->
+    <link rel="stylesheet" href="{% static 'css/tribute.css' %}">
+
+    <!-- Tribute.js JavaScript -->
+    <script src="{% static 'js/tribute.js' %}"></script>
     {% block extra_css %}{% endblock %}
 </head>
 <body>

@@ -106,13 +106,13 @@ class Reaction(models.Model):
 
 
 
-
 class Comment(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    mentioned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Mention', related_name='mentioned_in')
 
     @property
     def clap_count(self):
@@ -154,3 +154,13 @@ class CommentReaction(models.Model):
 
     class Meta:
         unique_together = ('user', 'comment', 'reaction_type')
+
+
+
+class Mention(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mentions')
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='mentions')
+    position = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('comment', 'position')
