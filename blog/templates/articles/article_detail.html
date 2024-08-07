@@ -2,6 +2,8 @@
 {% load static %}
 {% load article_tags %}
 {% load comment_tags %}
+
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/reaction.css' %}">
 <link rel="stylesheet" href="{% static 'css/tribute.css' %}">
@@ -31,68 +33,22 @@
     <a href="{% url 'article_update' article.pk %}">Edit Article</a>
 {% endif %}
 
-<h3>Comments ({{ article.comment_count }})</h3>
+
+
+<h3>Comments (<span id="comment-count">{{ article.comment_count }}</span>)</h3>
+<div id="comments-section">
 {% for comment in article.comments.all %}
     {% if not comment.parent %}
-        <div class="comment">
-            <p>{{ comment.content }}</p>
-            <small>By {{ comment.author.username }} on {{ comment.created_at }}</small>
-
-            <div class="comment-reactions" data-comment-id="{{ comment.id }}">
-                {% for reaction_type in "clap,laugh,sad"|split:"," %}
-                    <div class="comment-reaction-container">
-                        <button class="comment-reaction" data-type="{{ reaction_type }}" data-comment-id="{{ comment.id }}">
-                            {% if reaction_type == "clap" %}👏
-                            {% elif reaction_type == "laugh" %}😂
-                            {% elif reaction_type == "sad" %}😢
-                            {% endif %}
-                            <span class="{{ reaction_type }}-count">{{ comment|get_comment_reaction_count:reaction_type }}</span>
-                        </button>
-                        <div class="reaction-options" style="display:none;">
-                            <button class="comment-reaction-amount" data-amount="10">+10</button>
-                            <button class="comment-reaction-amount" data-amount="50">+50</button>
-                            <button class="comment-reaction-amount" data-amount="100">+100</button>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="replies" style="margin-left: 50px;">
-                {% for reply in comment.replies.all %}
-                    <div class="reply">
-                        <p>{{ reply.content }}</p>
-                        <small>By {{ reply.author.username }} on {{ reply.created_at }}</small>
-                        <div class="comment-reactions" data-comment-id="{{ reply.id }}">
-                            {% for reaction_type in "clap,laugh,sad"|split:"," %}
-                                <div class="comment-reaction-container">
-                                    <button class="comment-reaction" data-type="{{ reaction_type }}" data-comment-id="{{ reply.id }}">
-                                        {% if reaction_type == "clap" %}👏
-                                        {% elif reaction_type == "laugh" %}😂
-                                        {% elif reaction_type == "sad" %}😢
-                                        {% endif %}
-                                        <span class="{{ reaction_type }}-count">{{ reply|get_comment_reaction_count:reaction_type }}</span>
-                                    </button>
-                                    <div class="reaction-options" style="display:none;">
-                                        <button class="comment-reaction-amount" data-amount="10">+10</button>
-                                        <button class="comment-reaction-amount" data-amount="50">+50</button>
-                                        <button class="comment-reaction-amount" data-amount="100">+100</button>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <form method="post" action="{% url 'add_reply' comment.id %}" class="reply-form">
-                {% csrf_token %}
-                <textarea name="content" placeholder="Write a reply..." class="mention-input"></textarea>
-                <div class="mention-autocomplete"></div>
-                <button type="submit">Reply</button>
-            </form>
-        </div>
+        {% include "articles/comment.html" with comment=comment %}
     {% endif %}
 {% empty %}
     <p>No comments yet.</p>
 {% endfor %}
+</div>
+
+
+
+
 
 {% if user.is_authenticated %}
     <button id="followAuthorBtn" data-author-id="{{ article.author.id }}">

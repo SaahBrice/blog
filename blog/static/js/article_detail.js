@@ -148,9 +148,18 @@ $(document).ready(function() {
             url: url,
             data: form.serialize(),
             success: function(response) {
-                // Append new comment to the list
-                $('#comments-section').append(response.comment_html);
-                form.find('textarea').val('');
+                if (response.success) {
+                    // Prepend new comment to the list
+                    $('#comments-section').prepend(response.comment_html);
+                    form.find('textarea').val('');
+                    // Update comment count
+                    $('#comment-count').text(response.comment_count);
+                } else {
+                    alert(response.error);
+                }
+            },
+            error: function() {
+                alert('An error occurred while posting your comment.');
             }
         });
     });
@@ -166,9 +175,18 @@ $(document).ready(function() {
             url: url,
             data: form.serialize(),
             success: function(response) {
-                // Append new reply to the correct comment
-                form.closest('.comment').find('.replies').append(response.reply_html);
-                form.find('textarea').val('');
+                if (response.success) {
+                    // Append new reply to the correct comment
+                    form.siblings('.replies').append(response.reply_html);
+                    form.find('textarea').val('');
+                    // Update comment count
+                    $('#comment-count').text(response.comment_count);
+                } else {
+                    alert(response.error);
+                }
+            },
+            error: function() {
+                alert('An error occurred while posting your reply.');
             }
         });
     });

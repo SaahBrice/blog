@@ -1,0 +1,37 @@
+{% load comment_tags %}
+{% load article_tags %}
+
+<div class="comment" id="comment-{{ comment.id }}">
+    <p>{{ comment.content|render_mentions }}</p>
+    <small>By {{ comment.author.username }} on {{ comment.created_at }}</small>
+
+    <div class="comment-reactions" data-comment-id="{{ comment.id }}">
+        {% for reaction_type in "clap,laugh,sad"|split:"," %}
+            <div class="comment-reaction-container">
+                <button class="comment-reaction" data-type="{{ reaction_type }}" data-comment-id="{{ comment.id }}">
+                    {% if reaction_type == "clap" %}👏
+                    {% elif reaction_type == "laugh" %}😂
+                    {% elif reaction_type == "sad" %}😢
+                    {% endif %}
+                    <span class="{{ reaction_type }}-count">{{ comment|get_comment_reaction_count:reaction_type }}</span>
+                </button>
+                <div class="reaction-options" style="display:none;">
+                    <button class="comment-reaction-amount" data-amount="10">+10</button>
+                    <button class="comment-reaction-amount" data-amount="50">+50</button>
+                    <button class="comment-reaction-amount" data-amount="100">+100</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="replies" style="margin-left: 50px;">
+        {% for reply in comment.replies.all %}
+            {% include "articles/comment.html" with comment=reply %}
+        {% endfor %}
+    </div>
+    <form method="post" action="{% url 'add_reply' comment.id %}" class="reply-form">
+        {% csrf_token %}
+        <textarea name="content" placeholder="Write a reply..." class="mention-input"></textarea>
+        <div class="mention-autocomplete"></div>
+        <button type="submit">Reply</button>
+    </form>
+</div>

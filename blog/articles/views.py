@@ -18,6 +18,7 @@ from django.db import IntegrityError
 from django.db.models import Count
 import re
 from django.db.models import Q
+from django.template.loader import render_to_string
 
 
 class ArticleListView(ListView):
@@ -79,8 +80,8 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
             article = get_object_or_404(Article, pk=self.kwargs['pk'])
             form.instance.article = article
             form.instance.author = self.request.user
-            response=super().form_valid(form)
-            self.process_mentions(form.instance)
+            comment = form.save()
+            self.process_mentions(comment)
             # Create notification for the article author
             create_notification(
                 recipient=article.author,
@@ -89,7 +90,18 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
                 article=article,
                 comment=self.object
             )
-            return response
+        comment_html = render_to_string('articles/comment.html', {'comment': comment}, request=self.request)
+        return JsonResponse({
+            'success': True,
+            'comment_html': comment_html,
+            'comment_count': article.comment_count
+        })
+
+    def form_invalid(self, form):
+        return JsonResponse({'success': False, 'error': form.errors})
+
+
+        
     def process_mentions(self, comment):
         mention_pattern = r'@(\w+)'
         mentions = re.findall(mention_pattern, comment.content)
@@ -317,8 +329,12 @@ def add_reply(request, comment_id):
             comment=reply
         )
         
-        return redirect('article_detail', pk=parent_comment.article.pk)
-    return redirect('article_detail', pk=parent_comment.article.pk)
+    reply_html = render_to_string('articles/comment.html', {'comment': reply}, request=request)
+    return JsonResponse({
+        'success': True,
+        'reply_html': reply_html,
+        'comment_count': parent_comment.article.comment_count
+    })
 
 def process_mentions(comment, user):
     mention_pattern = r'@(\w+)'
