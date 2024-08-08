@@ -7,9 +7,9 @@ class Notification(models.Model):
         ('comment', 'Commented on'),
         ('comment_reaction', 'Reacted to your comment on'),
         ('reply', 'Replied to your comment on'),
-        ('clap', 'Reacted Clap on your post'),
+        ('clap', ' Clapped on your post'),
         ('sad', 'Reacted Sad on your post'),
-        ('laugh', 'Reacted Sad on your post'),
+        ('laugh', 'Reacted Laugh on your post'),
         ('mention', 'Mentioned you on'),
     )
     

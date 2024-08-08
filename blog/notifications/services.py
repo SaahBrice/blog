@@ -7,7 +7,7 @@ def create_notification(recipient, notification_type, sender=None, article=None,
         'comment': 'commented on your article',
         'comment_reaction': 'reacted to your comment',
         'reply': 'replied to your comment',
-        'clap': 'clapped for your article',
+        'clap': 'clapped on your article',
         'sad': 'reacted sad to your article',
         'laugh': 'reacted laugh at your article',
         'mention': 'mentioned you in'
