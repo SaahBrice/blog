@@ -6,9 +6,19 @@ from django.utils import timezone
 import json
 from django.utils.safestring import mark_safe
 
+
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > 10 * 1024 * 1024:  # 10 MB
+        raise ValidationError("The maximum file size that can be uploaded is 10 MB")
+
+
+
 class Article(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
+    image = models.ImageField(upload_to='article_images/', validators=[validate_file_size], null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -17,4 +17,5 @@ urlpatterns = [
     path('comment/<int:comment_id>/reply/', add_reply, name='add_reply'),
     path('get-tags/', get_tags, name='get_tags'),
     path('user-suggestions/', user_suggestions, name='user_suggestions'),
+    
 ]
