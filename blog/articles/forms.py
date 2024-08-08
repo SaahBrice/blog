@@ -7,7 +7,7 @@ class ArticleForm(forms.ModelForm):
         model = Article
         fields = ['title', 'content', 'language', 'status', 'tags']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 10}),
+            'content': forms.HiddenInput(),
             'tags': TagWidget(),
         }
 

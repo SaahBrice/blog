@@ -7,14 +7,24 @@
 
 {% block content %}
 <h2>{% if form.instance.pk %}Edit Article{% else %}Create New Article{% endif %}</h2>
-<form method="post">
+<form method="post" id="article-form" action="{% if form.instance.pk %}{% url 'article_update' form.instance.pk %}{% else %}{% url 'article_create' %}{% endif %}">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.title }}
+    {{ form.language }}
+    {{ form.status }}
+    {{ form.tags }}
+    <div id="editorjs"></div>
+    {{ form.content }}
     <button type="submit">Save</button>
 </form>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
 <script src="{% static 'js/article_form.js' %}"></script>
 {% endblock %}

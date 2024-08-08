@@ -24,6 +24,13 @@ from .templatetags.comment_tags import render_mentions
 from django.db import connection
 from django.conf import settings
 from django.utils import timezone
+from django.urls import reverse
+
+
+
+
+
+
 
 class ArticleListView(ListView):
     model = Article
@@ -146,7 +153,17 @@ class ArticleCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        self.object = form.save()
+        return JsonResponse({
+            'success': True,
+            'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
+        })
+
+    def form_invalid(self, form):
+        return JsonResponse({
+            'success': False,
+            'error': form.errors
+        })
 
 class ArticleUpdateView(LoginRequiredMixin, UpdateView):
     model = Article
@@ -156,7 +173,19 @@ class ArticleUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Article.objects.filter(author=self.request.user)
-    
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return JsonResponse({
+            'success': True,
+            'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
+        })
+
+    def form_invalid(self, form):
+        return JsonResponse({
+            'success': False,
+            'error': form.errors
+        })
 
 class ArticlesByTagView(ListView):
     model = Article

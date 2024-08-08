@@ -3,6 +3,7 @@ from django.conf import settings
 from django.forms import ValidationError
 from taggit.managers import TaggableManager
 from django.utils import timezone
+import json
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
@@ -16,7 +17,24 @@ class Article(models.Model):
     tags = TaggableManager()
     bookmarks = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='bookmarked_articles', blank=True)
 
-
+    def get_content_as_html(self):
+        try:
+            content_json = json.loads(self.content)
+            html = ""
+            for block in content_json['blocks']:
+                if block['type'] == 'header':
+                    html += f"<h{block['data']['level']}>{block['data']['text']}</h{block['data']['level']}>"
+                elif block['type'] == 'paragraph':
+                    html += f"<p>{block['data']['text']}</p>"
+                elif block['type'] == 'list':
+                    list_type = 'ol' if block['data']['style'] == 'ordered' else 'ul'
+                    html += f"<{list_type}>"
+                    for item in block['data']['items']:
+                        html += f"<li>{item}</li>"
+                    html += f"</{list_type}>"
+            return html
+        except json.JSONDecodeError:
+            return self.content
     @classmethod
     def get_recent_articles_for_user(cls, user, limit=10):
         return cls.objects.filter(
