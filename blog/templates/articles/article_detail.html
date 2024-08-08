@@ -28,7 +28,15 @@
 <p>Tags: {% for tag in article.tags.all %}
     <a href="{% url 'article_by_tag' tag.slug %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
 {% endfor %}</p>
-<div>{{ article.get_content_as_html|safe }}</div>
+<div>
+    {% with content_html=article.get_content_as_html %}
+        {% if content_html %}
+            {{ content_html|safe }}
+        {% else %}
+            <p>{{ article.content }}</p>
+        {% endif %}
+    {% endwith %}
+</div>
 
 {% if user == article.author %}
     <a href="{% url 'article_update' article.pk %}">Edit Article</a>

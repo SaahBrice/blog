@@ -38,7 +38,8 @@ $(document).ready(function() {
                     defaultLevel: 1
                 }
             },
-            image: SimpleImage,
+
+            SimpleImage: SimpleImage,
             quote: Quote,
             code: CodeTool,
             table: Table,
@@ -48,6 +49,17 @@ $(document).ready(function() {
                 class: Paragraph,
                 inlineToolbar: ['bold', 'italic', 'inlineCode']
             },
+            image: {
+                class: ImageTool,
+                config: {
+                    endpoints: {
+                        byFile: '/articles/upload-image/', // Adjust this path as needed
+                    },
+                    field: 'image',
+                    types: 'image/*'
+                }
+            },
+            
             inlineCode: {
                 class: InlineCode,
                 shortcut: 'CMD+SHIFT+M',

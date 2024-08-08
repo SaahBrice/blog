@@ -5,6 +5,7 @@ from taggit.managers import TaggableManager
 from django.utils import timezone
 import json
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 
 
@@ -28,40 +29,80 @@ class Article(models.Model):
     tags = TaggableManager()
     bookmarks = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='bookmarked_articles', blank=True)
 
+
+
     def get_content_as_html(self):
         try:
             content_json = json.loads(self.content)
-            html = ""
-            for block in content_json['blocks']:
-                if block['type'] == 'header':
-                    html += f"<h{block['data']['level']}>{block['data']['text']}</h{block['data']['level']}>"
-                elif block['type'] == 'paragraph':
-                    html += f"<p>{block['data']['text']}</p>"
-                elif block['type'] == 'list':
-                    list_type = 'ol' if block['data']['style'] == 'ordered' else 'ul'
-                    html += f"<{list_type}>"
-                    for item in block['data']['items']:
-                        html += f"<li>{item}</li>"
-                    html += f"</{list_type}>"
-                elif block['type'] == 'image':
-                    html += f"<img src='{block['data']['url']}' alt='{block['data'].get('caption', '')}'>"
-                elif block['type'] == 'quote':
-                    html += f"<blockquote>{block['data']['text']}</blockquote>"
-                elif block['type'] == 'code':
-                    html += f"<pre><code>{block['data']['code']}</code></pre>"
-                elif block['type'] == 'table':
-                    html += "<table>"
-                    for row in block['data']['content']:
-                        html += "<tr>"
-                        for cell in row:
-                            html += f"<td>{cell}</td>"
-                        html += "</tr>"
-                    html += "</table>"
-                elif block['type'] == 'embed':
-                    html += f"<iframe src='{block['data']['embed']}' frameborder='0' allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>"
-            return mark_safe(html)
         except json.JSONDecodeError:
-            return self.content
+            return mark_safe("<p>Error: Could not parse content</p>")
+
+        if not isinstance(content_json, dict) or 'blocks' not in content_json:
+            return mark_safe("<p>Error: Invalid content structure</p>")
+
+        html = ""
+        for block in content_json['blocks']:
+            block_type = block.get('type')
+            block_data = block.get('data', {})
+
+            if block_type == 'header':
+                level = block_data.get('level', 1)
+                text = block_data.get('text', '')
+                html += f"<h{level}>{text}</h{level}>"
+            elif block_type == 'paragraph':
+                text = block_data.get('text', '')
+                html += f"<p>{text}</p>"
+            elif block_type in ['image', 'SimpleImage']:
+                url = block_data.get('file', {}).get('url') or block_data.get('url', '')
+                caption = block_data.get('caption', '')
+                html += f'<figure><img src="{url}" alt="{caption}">'
+                if caption:
+                    html += f'<figcaption>{caption}</figcaption>'
+                html += '</figure>'
+            elif block_type == 'list':
+                style = block_data.get('style', 'unordered')
+                items = block_data.get('items', [])
+                list_tag = 'ul' if style == 'unordered' else 'ol'
+                html += f"<{list_tag}>"
+                for item in items:
+                    html += f"<li>{item}</li>"
+                html += f"</{list_tag}>"
+            elif block_type == 'quote':
+                text = block_data.get('text', '')
+                caption = block_data.get('caption', '')
+                html += f'<blockquote>{text}'
+                if caption:
+                    html += f'<footer>{caption}</footer>'
+                html += '</blockquote>'
+            elif block_type == 'code':
+                code = block_data.get('code', '')
+                escaped_code = escape(code)
+                html += f'<pre><code>{escaped_code}</code></pre>'
+            elif block_type == 'table':
+                html += '<table>'
+                for row in block_data.get('content', []):
+                    html += '<tr>'
+                    for cell in row:
+                        html += f'<td>{cell}</td>'
+                    html += '</tr>'
+                html += '</table>'
+            elif block_type == 'embed':
+                service = block_data.get('service', '')
+                source = block_data.get('source', '')
+                embed = block_data.get('embed', '')
+                caption = block_data.get('caption', '')
+                if service == 'youtube' and embed:
+                    html += f'<figure class="embed"><iframe width="560" height="315" src="{embed}" frameborder="0" allowfullscreen></iframe>'
+                    if caption:
+                        html += f'<figcaption>{caption}</figcaption>'
+                    html += '</figure>'
+                else:
+                    html += f'<a href="{source}" target="_blank">{caption or source}</a>'
+            else:
+                html += f"<p>Unsupported block type: {block_type}</p>"
+
+        return mark_safe(html)
+
 
     @classmethod
     def get_recent_articles_for_user(cls, user, limit=10):

@@ -26,8 +26,10 @@ from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from uuid import uuid4
+import os
 
 
 
@@ -441,3 +443,21 @@ def user_suggestions(request):
 
 
 
+@csrf_exempt
+@require_POST
+def upload_image(request):
+    if 'image' in request.FILES:
+        image = request.FILES['image']
+        ext = os.path.splitext(image.name)[1]
+        filename = f"{uuid4().hex}{ext}"
+        
+        # Use Django's storage system for file handling
+        path = default_storage.save(f'article_images/{filename}', ContentFile(image.read()))
+        
+        return JsonResponse({
+            'success': 1,
+            'file': {
+                'url': default_storage.url(path),
+            }
+        })
+    return JsonResponse({'success': 0})

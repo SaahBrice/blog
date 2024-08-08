@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import user_suggestions,get_tags, add_reply, toggle_comment_reaction, remove_bookmark, BookmarkedArticlesView, toggle_reaction, toggle_bookmark, toggle_follow_author, ArticlesByTagView, CommentCreateView, ArticleListView, ArticleDetailView, ArticleCreateView, ArticleUpdateView
+from .views import upload_image,user_suggestions,get_tags, add_reply, toggle_comment_reaction, remove_bookmark, BookmarkedArticlesView, toggle_reaction, toggle_bookmark, toggle_follow_author, ArticlesByTagView, CommentCreateView, ArticleListView, ArticleDetailView, ArticleCreateView, ArticleUpdateView
 
 urlpatterns = [
     path('', ArticleListView.as_view(), name='article_list'),
@@ -17,5 +17,5 @@ urlpatterns = [
     path('comment/<int:comment_id>/reply/', add_reply, name='add_reply'),
     path('get-tags/', get_tags, name='get_tags'),
     path('user-suggestions/', user_suggestions, name='user_suggestions'),
-    
+    path('upload-image/', upload_image, name='upload_image'),
 ]
