@@ -4,6 +4,7 @@ from django.forms import ValidationError
 from taggit.managers import TaggableManager
 from django.utils import timezone
 import json
+from django.utils.safestring import mark_safe
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
@@ -32,9 +33,26 @@ class Article(models.Model):
                     for item in block['data']['items']:
                         html += f"<li>{item}</li>"
                     html += f"</{list_type}>"
-            return html
+                elif block['type'] == 'image':
+                    html += f"<img src='{block['data']['url']}' alt='{block['data'].get('caption', '')}'>"
+                elif block['type'] == 'quote':
+                    html += f"<blockquote>{block['data']['text']}</blockquote>"
+                elif block['type'] == 'code':
+                    html += f"<pre><code>{block['data']['code']}</code></pre>"
+                elif block['type'] == 'table':
+                    html += "<table>"
+                    for row in block['data']['content']:
+                        html += "<tr>"
+                        for cell in row:
+                            html += f"<td>{cell}</td>"
+                        html += "</tr>"
+                    html += "</table>"
+                elif block['type'] == 'embed':
+                    html += f"<iframe src='{block['data']['embed']}' frameborder='0' allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>"
+            return mark_safe(html)
         except json.JSONDecodeError:
             return self.content
+
     @classmethod
     def get_recent_articles_for_user(cls, user, limit=10):
         return cls.objects.filter(

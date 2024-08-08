@@ -31,11 +31,26 @@ $(document).ready(function() {
     editor = new EditorJS({
         holder: 'editorjs',
         tools: {
-            header: Header,
+            header: {
+                class: Header,
+                config: {
+                    levels: [1, 2],
+                    defaultLevel: 1
+                }
+            },
+            image: SimpleImage,
+            quote: Quote,
+            code: CodeTool,
+            table: Table,
+            embed: Embed,
             list: List,
             paragraph: {
                 class: Paragraph,
-                inlineToolbar: true,
+                inlineToolbar: ['bold', 'italic', 'inlineCode']
+            },
+            inlineCode: {
+                class: InlineCode,
+                shortcut: 'CMD+SHIFT+M',
             }
         },
         data: JSON.parse(document.getElementById('id_content').value || '{}'),
@@ -45,6 +60,7 @@ $(document).ready(function() {
             });
         }
     });
+
 
     // Form submission
     $('#article-form').on('submit', function(e) {

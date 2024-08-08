@@ -25,6 +25,8 @@ from django.db import connection
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 
@@ -92,7 +94,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
             form.instance.article = article
             form.instance.author = self.request.user
             comment = form.save()
-            self.process_mentions(comment,self.request.user)
+            process_mentions(comment,self.request.user)
             # Create notification for the article author
             create_notification(
                 recipient=article.author,
@@ -116,34 +118,13 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return JsonResponse({'success': False, 'error': form.errors})
 
 
-        
-    def process_mentions(comment, user):
-        mention_pattern = r'@(\w+)'
-        mentions = re.findall(mention_pattern, comment.content)
-        followers_mentioned = False
-        for index, username in enumerate(mentions):
-            if username == 'followers':
-                if not followers_mentioned:
-                    create_follower_notifications(user, comment.article, comment, 'mention')
-                    followers_mentioned = True
-            else:
-                user = User.objects.filter(username=username).first()
-                if user:
-                    Mention.objects.create(user=user, comment=comment, position=index)
-                    create_notification(
-                        recipient=user,
-                        notification_type='mention',
-                        sender=user,
-                        article=comment.article,
-                        comment=comment
-                    )
-
-
-
-
-
     def get_success_url(self):
         return reverse_lazy('article_detail', kwargs={'pk': self.kwargs['pk']})
+
+
+
+
+
 
 class ArticleCreateView(LoginRequiredMixin, CreateView):
     model = Article
@@ -434,6 +415,7 @@ def process_mentions(comment, user):
                     comment=comment
                 )
 
+
 def get_tags(request):
     query = request.GET.get('query', '')
     tags = Tag.objects.filter(name__icontains=query).values_list('name', flat=True)
@@ -456,3 +438,6 @@ def user_suggestions(request):
         'username': suggestion['username'],
         'name': f"{suggestion['first_name']} {suggestion['last_name']}".strip()
     } for suggestion in suggestions], safe=False)
+
+
+
