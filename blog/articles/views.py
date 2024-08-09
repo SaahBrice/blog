@@ -30,10 +30,21 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from uuid import uuid4
 import os
+from django.views.generic import TemplateView
 
 
+class WelcomeView(TemplateView):
+    template_name = 'welcome.html'
 
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('article_list')
+        return super().get(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['featured_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:5]
+        return context
 
 
 class ArticleListView(ListView):
@@ -64,7 +75,7 @@ class ArticleListView(ListView):
                 tags__name__in=user_tags
             ).order_by('?')[:5]
             context['discover_articles'] = discover_articles
-        
+            context['tags']=Tag.objects.all()
         return context
 
 

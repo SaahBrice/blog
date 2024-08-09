@@ -157,4 +157,5 @@ LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'article_list'
+LOGIN_URL = 'account_login' 
