@@ -23,14 +23,16 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
-    list_display = ('site_name', 'min_articles_for_writer', 'min_followers_for_writer', 'min_reactions_for_writer')
-    
+    list_display = ('site_name', 'min_articles_for_writer', 'min_followers_for_writer', 'min_reactions_for_writer','min_articles_for_suggestions', 'max_suggested_users')
+
+
+
     fieldsets = (
         ('General Settings', {
             'fields': ('site_name', 'site_logo'),
         }),
         ('Writer Criteria', {
-            'fields': ('min_articles_for_writer', 'min_followers_for_writer', 'min_reactions_for_writer'),
+            'fields': ('min_articles_for_writer', 'min_followers_for_writer', 'min_reactions_for_writer', 'min_articles_for_suggestions', 'max_suggested_users'),
         }),
         # Add more fieldsets as needed for future settings
     )

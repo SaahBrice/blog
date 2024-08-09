@@ -29,6 +29,16 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
+# Cache settings
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR/'django_cache',
+    }
+}
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,6 +59,7 @@ INSTALLED_APPS = [
     'search',
     'notifications',
     'taggit',
+    'corsheaders',
 
 ]
 
@@ -68,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'blog.urls'

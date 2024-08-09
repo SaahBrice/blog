@@ -10,6 +10,22 @@
     {% endfor %}
 </div>
 
+{% if suggested_users %}
+<div class="suggested-users">
+    <h3>Suggested Writers</h3>
+    <ul>
+        {% for suggested_user in suggested_users %}
+            <li>
+                <a href="{% url 'user_profile' username=suggested_user.username %}">
+                    {{ suggested_user.username }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+
 {% if user.is_authenticated %}
     <a href="{% url 'article_create' %}">Create New Article</a>
     <a href="{% url 'bookmarked_articles' %}">Saved Articles</a>

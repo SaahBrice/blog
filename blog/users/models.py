@@ -16,6 +16,14 @@ class User(AbstractUser):
     is_premium = models.BooleanField(default=False)
     is_manual_writer = models.BooleanField(default=False)
 
+
+    @property
+    def is_eligible_for_suggestions(self):
+        settings = SiteSettings.load()
+        return (self.is_writer and 
+                self.is_verified and 
+                self.is_premium and 
+                self.article_set.count() >= settings.min_articles_for_suggestions)
     def get_avatar_url(self):
         return get_or_create_avatar(self)
 
@@ -50,7 +58,12 @@ class SiteSettings(models.Model):
     min_articles_for_writer = models.PositiveIntegerField(default=1)
     min_followers_for_writer = models.PositiveIntegerField(default=1)
     min_reactions_for_writer = models.PositiveIntegerField(default=10)
-    
+
+    min_articles_for_suggestions = models.PositiveIntegerField(default=5)
+    max_suggested_users = models.PositiveIntegerField(default=5)
+    suggestion_cache_timeout = models.PositiveIntegerField(default=3600)  # 1 hour in seconds
+
+
     class Meta:
         verbose_name = 'Site Settings'
         verbose_name_plural = 'Site Settings'

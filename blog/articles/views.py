@@ -1,4 +1,3 @@
-from django.shortcuts import render
 
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,15 +13,11 @@ from users.models import User
 from users.services import toggle_follow
 from notifications.services import create_notification
 from django.db import transaction
-from django.db import IntegrityError
 from django.db.models import Count
 import re
 from django.db.models import Q
 from django.template.loader import render_to_string
-from django.template import Template, Context
-from .templatetags.comment_tags import render_mentions
 from django.db import connection
-from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -31,6 +26,14 @@ from django.core.files.base import ContentFile
 from uuid import uuid4
 import os
 from django.views.generic import TemplateView
+from users.services import get_suggested_users
+
+
+
+
+
+
+
 
 
 class WelcomeView(TemplateView):
@@ -76,9 +79,8 @@ class ArticleListView(ListView):
             ).order_by('?')[:5]
             context['discover_articles'] = discover_articles
             context['tags']=Tag.objects.all()
+            context['suggested_users'] = get_suggested_users(user)
         return context
-
-
 
 
 
