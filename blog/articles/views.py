@@ -472,3 +472,4 @@ def upload_image(request):
             }
         })
     return JsonResponse({'success': 0})
+
