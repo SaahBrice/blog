@@ -18,12 +18,12 @@ class User(AbstractUser):
         article_count = self.article_set.count()
         follower_count = self.followers.count()
         
-        if article_count >= 12 and follower_count >= 5:
+        if article_count >= 1 and follower_count >= 1:
             total_reactions = sum(
                 article.reactions.aggregate(total=Sum('count'))['total'] or 0
                 for article in self.article_set.all()
             )
-            return total_reactions >= 1000
+            return total_reactions >= 10
         return False
     def unread_notifications_count(self):
         return self.notifications.filter(is_read=False).count()
