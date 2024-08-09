@@ -30,6 +30,7 @@ class UserProfileView(LoginRequiredMixin, DetailView):
             context['is_following'] = self.request.user.following.filter(id=self.object.id).exists()
             context['is_blocked'] = self.request.user.blocked_users.filter(id=self.object.id).exists()
         context['articles'] = Article.objects.filter(author=self.object, status='published').order_by('-published_at')[:5]
+        context['avatar_url'] = self.request.user.get_avatar_url()
         return context
 
 class UserProfileUpdateView(LoginRequiredMixin, UpdateView):

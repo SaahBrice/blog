@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Count, Sum
 from django.core.cache import cache
-
+from .utils import get_or_create_avatar
 
 class User(AbstractUser):
     bio = models.TextField(max_length=500, blank=True)
@@ -16,7 +16,8 @@ class User(AbstractUser):
     is_premium = models.BooleanField(default=False)
     is_manual_writer = models.BooleanField(default=False)
 
-
+    def get_avatar_url(self):
+        return get_or_create_avatar(self)
 
     @property
     def is_writer(self):

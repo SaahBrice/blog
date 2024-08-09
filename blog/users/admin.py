@@ -1,11 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, SiteSettings
+from django.utils.html import format_html
+
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ('username', 'email', 'is_verified', 'is_premium', 'is_staff', 'date_joined', 'is_manual_writer')
+    list_display = ('username', 'email', 'is_verified', 'is_premium', 'is_staff', 'date_joined', 'is_manual_writer', 'avatar_preview')
     search_fields = ('username', 'email', 'location', 'website')
     list_filter = ('is_verified', 'is_premium', 'is_staff', 'is_superuser', 'is_active','is_manual_writer', 'date_joined')
     ordering = ('-date_joined',)
@@ -14,6 +16,10 @@ class CustomUserAdmin(UserAdmin):
     )
     readonly_fields = ('date_joined',)
 
+    def avatar_preview(self, obj):
+        return format_html('<img src="{}" width="50" height="50" style="border-radius: 50%;" />', obj.get_avatar_url())
+
+    avatar_preview.short_description = 'Avatar'
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
