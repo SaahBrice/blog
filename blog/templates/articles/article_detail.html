@@ -28,7 +28,7 @@
 <p>Tags: {% for tag in article.tags.all %}
     <a href="{% url 'article_by_tag' tag.slug %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
 {% endfor %}</p>
-<div>
+<div id="article-content">
     {% with content_html=article.get_content_as_html %}
         {% if content_html %}
             {{ content_html|safe }}
@@ -37,6 +37,12 @@
         {% endif %}
     {% endwith %}
 </div>
+
+
+<button id="ttsButton">Read Article</button>
+<input type="hidden" id="speechify-api-key" value="{{ speechify_api_key }}">
+
+
 
 {% if user == article.author %}
     <a href="{% url 'article_update' article.pk %}">Edit Article</a>
@@ -99,4 +105,6 @@
 {% block extra_js %}
 <script src="{% static 'js/article_detail.js' %}"></script>
 <script src="{% static 'js/tribute.js' %}"></script>
+<script src="{% static 'js/text-to-speech.js' %}"></script>
+<script src="{% static 'js/article_detail.js' %}"></script>
 {% endblock %}

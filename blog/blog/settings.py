@@ -193,3 +193,5 @@ SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
 # Avatar settings
 AVATAR_FONT_PATH = 'static/font/font.ttf'  # Replace with the path to a TTF font file
 AVATAR_SIZE = 150  # Default avatar size
+
+SPEECHIFY_API_KEY = '2-QIZkGLD5H-EabaspXM4V4asrc8SdqkshUD4nYbS80='

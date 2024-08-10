@@ -1,4 +1,5 @@
 $(document).ready(function() {
+
     // Setup CSRF token for AJAX requests
     var csrftoken = getCookie('csrftoken');
     $.ajaxSetup({
@@ -219,3 +220,54 @@ function getCookie(name) {
 function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
+
+
+
+// ... (keep your existing jQuery code) ...
+
+// ... (keep your existing jQuery code) ...
+
+document.addEventListener('DOMContentLoaded', () => {
+    const ttsButton = document.getElementById('ttsButton');
+    const articleContent = document.getElementById('article-content').innerHTML;
+    const apiKey = document.getElementById('speechify-api-key').value;
+
+    if (apiKey && typeof TextToSpeech !== 'undefined') {
+        let tts = null;
+        let isInitialized = false;
+
+        ttsButton.addEventListener('click', async () => {
+            if (!isInitialized) {
+                ttsButton.textContent = 'Loading...';
+                ttsButton.disabled = true;
+                tts = new TextToSpeech(apiKey);
+                try {
+                    console.log('Starting TTS initialization');
+                    await tts.initialize(articleContent);
+                    isInitialized = true;
+                    ttsButton.textContent = 'Read Article';
+                    ttsButton.disabled = false;
+                    console.log('TTS initialization complete');
+                } catch (error) {
+                    console.error('TTS Initialization Error:', error);
+                    ttsButton.textContent = 'TTS Error';
+                    alert(`Failed to initialize Text-to-Speech: ${error.message}`);
+                    return;
+                }
+            }
+
+            try {
+                console.log('Triggering playPause');
+                const isPlaying = await tts.playPause();
+                ttsButton.textContent = isPlaying ? 'Pause' : 'Read Article';
+            } catch (error) {
+                console.error('TTS Playback Error:', error);
+                ttsButton.textContent = 'TTS Error';
+                alert(`An error occurred during playback: ${error.message}`);
+            }
+        });
+    } else {
+        ttsButton.textContent = 'TTS Unavailable';
+        ttsButton.disabled = true;
+    }
+});

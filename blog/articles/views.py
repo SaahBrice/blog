@@ -27,7 +27,7 @@ from uuid import uuid4
 import os
 from django.views.generic import TemplateView
 from users.services import get_suggested_users
-
+from django.conf import settings
 
 
 
@@ -96,6 +96,7 @@ class ArticleDetailView(DetailView):
             context['is_bookmarked'] = self.object.bookmarks.filter(id=self.request.user.id).exists()
             context['comment_form'] = CommentForm()
             context['user_reactions'] = Reaction.objects.filter(user=self.request.user,article=self.object).values_list('reaction_type', flat=True)
+            context['speechify_api_key'] = settings.SPEECHIFY_API_KEY
         return context
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
