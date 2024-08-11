@@ -5,9 +5,14 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User
-from .forms import UserProfileForm
+from .forms import UserProfileForm, CustomLoginForm, CustomSignupForm
 from .services import toggle_follow, toggle_block
 from articles.models import Article
+from django.contrib import messages
+from django.contrib.auth import login
+from allauth.account.utils import complete_signup
+from allauth.account import app_settings
+from django.shortcuts import render, redirect
 
 
 class UserListView(ListView):
@@ -97,3 +102,44 @@ def toggle_premium(request):
     status = "activated" if request.user.is_premium else "deactivated"
     messages.success(request, f"Premium status {status}.")
     return redirect('user_profile', username=request.user.username)
+
+
+
+
+def custom_login(request):
+    if request.user.is_authenticated:
+        return redirect('article_list')
+    
+    if request.method == 'POST':
+        form = CustomLoginForm(request.POST)
+        if form.is_valid():
+            from allauth.account.auth_backends import AuthenticationBackend
+            user = AuthenticationBackend().authenticate(
+                request,
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password']
+            )
+            if user:
+                login(request, user,backend='allauth.account.auth_backends.AuthenticationBackend')
+                messages.success(request, 'Successfully logged in.')
+                return redirect('article_list')
+            else:
+                messages.error(request, 'Invalid email or password.')
+    else:
+        form = CustomLoginForm()
+    return render(request, 'accounts/login.html', {'form': form})
+
+def custom_signup(request):
+    if request.user.is_authenticated:
+        return redirect('article_list')
+    
+    if request.method == 'POST':
+        form = CustomSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save(request)
+            complete_signup(request, user, app_settings.EMAIL_VERIFICATION, 'home')
+            messages.success(request, 'Account created successfully. Please check your email for verification.')
+            return redirect('article_list')
+    else:
+        form = CustomSignupForm()
+    return render(request, 'accounts/signup.html', {'form': form})

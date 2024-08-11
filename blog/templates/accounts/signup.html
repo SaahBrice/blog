@@ -1,25 +1,125 @@
-{% extends "base.html" %}
-{% load socialaccount %}
+{% extends "welcome_base.html" %}
+{% block title %}Sign Up{% endblock %}
 
 {% block content %}
-<h2>Sign Up</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Sign Up</button>
-</form>
+<div class="min-h-screen bg-[#F7F4ED] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="font-['serif'] mt-6 text-center text-3xl font-extrabold text-gray-900 font-['Playfair Display']">
+            Join <span class="font-['serif'] text-4xl">237</span>
+        </h2>
+    </div>
 
-<hr>
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form class="space-y-6" method="post">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Email address
+                    </label>
+                    <div class="mt-1">
+                        {{ form.email }}
+                    </div>
+                    {% if form.email.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
 
-<h3>Or log in with:</h3>
-{% if socialaccount_providers %}
-  {% for provider in socialaccount_providers %}
-    <a href="{% provider_login_url provider.id %}" class="btn btn-{{ provider.id }}">
-      Log in with {{ provider.name }}
-    </a>
-  {% endfor %}
-{% else %}
-  <p>No social account providers configured.</p>
-{% endif %}
-heyyyyyyyyyyyy
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Password
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password1 }}
+                    </div>
+                    {% if form.password1.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Confirm Password
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password2 }}
+                    </div>
+                    {% if form.password2.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div class="mt-4">
+                  <label id="captchaQuestion" for="captcha" class="block text-xs font-medium text-gray-700">Prove you're human</label>
+                  <div class="mt-1 flex items-center">
+                      <input type="" id="captchaAnswer" name="captchaAnswer" required
+                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  </div>
+              </div>
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                        Sign Up
+                    </button>
+                </div>
+
+                <div class="text-xs text-center text-gray-500 mt-4">
+                    By signing up, you agree to our 
+                    <a href="#" class="text-indigo-600 hover:text-indigo-500">Terms and Conditions</a> 
+                    and 
+                    <a href="#" class="text-indigo-600 hover:text-indigo-500">Privacy Policy</a> 
+                    locatable in the footer of this page.
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            Already have an account?
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{% url 'account_login' %}" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                        Log in
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let num1 = Math.floor(Math.random() * 10) + 1;
+    let num2 = Math.floor(Math.random() * 10) + 1;
+    let answer = num1 + num2;
+
+    document.getElementById('captchaQuestion').textContent = `What is ${num1} + ${num2}?`;
+
+    document.getElementById('signupForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        let userAnswer = document.getElementById('captchaAnswer').value;
+
+        if (parseInt(userAnswer) === answer) {
+            // CAPTCHA is correct, submit the form
+            this.submit();
+        } else {
+            // CAPTCHA is incorrect, show an error message
+            alert('Incorrect CAPTCHA answer. Please try again.');
+            
+            // Generate a new CAPTCHA question
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            answer = num1 + num2;
+            document.getElementById('captchaQuestion').textContent = `What is ${num1} + ${num2}?`;
+            document.getElementById('captchaAnswer').value = '';
+        }
+    });
+});
+</script>
 {% endblock %}

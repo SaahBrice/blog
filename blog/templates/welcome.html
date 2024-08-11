@@ -1,22 +1,51 @@
+{% extends "welcome_base.html" %}
 
-<h1>Welcome to Our Blog</h1>
-<p>Discover amazing articles and connect with writers from around the world.</p>
+{% block title %}Welcome to 237{% endblock %}
 
-{% if not user.is_authenticated %}
-    <a href="{% url 'account_login' %}" class="btn btn-primary">Sign In</a>
-    <a href="{% url 'account_signup' %}" class="btn btn-secondary">Sign Up</a>
-    <a href="{% url 'welcome' %}">Home</a>
-    <a href="{% url 'article_list' %}">Articles</a>
-{% endif %}
+{% block content %}
+<main class="flex-grow flex items-center justify-center bg-[#F7F4ED] p-4">
+    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between">
+        <div class="content-left max-w-xl md:max-w-xl mb-6 md:mb-0 md:mr-8">
+            <h2 class="text-4xl md:text-8xl font-bold text-gray-800 mb-8 font-heading">Write, Share and Inspire</h2>
+            <p class="text-lg md:text-xl text-black-900 mb-8">Discover actualities that make a difference</p>
+            <p class="text-sm md:text-sm text-gray-600 mb-9">Join over 500 writers and over 50,000 readers today.</p>
+            <a href="{% url 'account_signup' %}" class="bg-gradient-to-r from-green-500 via-red-500 to-yellow-500  hover:from-green-700 hover:via-red-700 hover:to-yellow-500 px-6 py-2 md:px-8 md:py-2 rounded-full text-l md:text-l text-white">Get Started</a>
+        </div>
+        <div class="scroll-box bg-[#f0e6d2] p-4 md:p-6 rounded-lg shadow-md max-w-md">
+            <div class="scroll-content">
+                <p id="animated-text" class="text-[#3a3a3a]"></p>
+                <span id="cursor"></span>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
 
-<h2>Featured Articles</h2>
-<ul>
-    {% for article in articles|slice:":5" %}
-        <li>
-            <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
-            <p>{{ article.content|truncatewords:30 }}</p>
-        </li>
-    {% empty %}
-        <li>No articles available.</li>
-    {% endfor %}
-</ul>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Typewriter effect
+        const text = "The art of storytelling is as old as humanity itself. Through words, we weave tales that inspire, educate, and connect us. 237 provides a platform for voices of all kinds, from seasoned writers to those just beginning their journey. Here, ideas take flight and find their audience.";
+        const animatedText = document.getElementById('animated-text');
+        const cursor = document.getElementById('cursor');
+        let i = 0;
+    
+        function typeWriter() {
+            if (i < text.length) {
+                animatedText.innerHTML += text.charAt(i);
+                i++;
+                let delay = Math.random() * 100 + 50;  // Varied typing speed
+                setTimeout(typeWriter, delay);
+                
+                // Scroll to bottom as text is typed
+                animatedText.parentElement.scrollTop = animatedText.parentElement.scrollHeight;
+            } else {
+                cursor.style.display = 'none';  // Hide cursor when typing is done
+            }
+        }
+    
+        // Start the typewriter effect
+        typeWriter();
+    });
+</script>
+{% endblock %}

@@ -139,21 +139,23 @@ $(document).ready(function() {
     });
 
     // Handle main comment form submission
-    $('#comment-form').submit(function(e) {
+    $('#comment-form').off('submit').on('submit', function(e) {
         e.preventDefault();
         var form = $(this);
-        var url = form.attr('action');
+        var submitButton = form.find('button[type="submit"]');
+        
+        if (form.data('submitting')) return false;
+        form.data('submitting', true);
+        submitButton.prop('disabled', true);
         
         $.ajax({
             type: 'POST',
-            url: url,
+            url: form.attr('action'),
             data: form.serialize(),
             success: function(response) {
                 if (response.success) {
-                    // Prepend new comment to the list
                     $('#comments-section').prepend($(response.comment_html));
                     form.find('textarea').val('');
-                    // Update comment count
                     $('#comment-count').text(response.comment_count);
                 } else {
                     alert(response.error);
@@ -161,26 +163,36 @@ $(document).ready(function() {
             },
             error: function() {
                 alert('An error occurred while posting your comment.');
+            },
+            complete: function() {
+                form.data('submitting', false);
+                submitButton.prop('disabled', false);
             }
         });
     });
 
+
+
+
+    
     // Handle reply form submissions (including dynamically added ones)
-    $(document).on('submit', '.reply-form', function(e) {
+    $(document).off('submit', '.reply-form').on('submit', '.reply-form', function(e) {
         e.preventDefault();
         var form = $(this);
-        var url = form.attr('action');
+        var submitButton = form.find('button[type="submit"]');
+        
+        if (form.data('submitting')) return false;
+        form.data('submitting', true);
+        submitButton.prop('disabled', true);
         
         $.ajax({
             type: 'POST',
-            url: url,
+            url: form.attr('action'),
             data: form.serialize(),
             success: function(response) {
                 if (response.success) {
-                    // Append new reply to the correct comment
                     form.siblings('.replies').append($(response.reply_html));
                     form.find('textarea').val('');
-                    // Update comment count
                     $('#comment-count').text(response.comment_count);
                 } else {
                     alert(response.error);
@@ -188,9 +200,24 @@ $(document).ready(function() {
             },
             error: function() {
                 alert('An error occurred while posting your reply.');
+            },
+            complete: function() {
+                form.data('submitting', false);
+                submitButton.prop('disabled', false);
             }
         });
     });
+
+
+
+
+
+
+
+
+
+
+
 
     // Initialize Tribute for dynamically added reply forms
     $(document).on('focus', '.reply-form textarea', function() {

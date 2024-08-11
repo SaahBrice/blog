@@ -8,7 +8,6 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
 
-
 def validate_file_size(value):
     filesize = value.size
     if filesize > 10 * 1024 * 1024:  # 10 MB
@@ -216,6 +215,13 @@ class Comment(models.Model):
     def __str__(self):
         return f'Comment by {self.author.username} on {self.article.title}'
         
+
+
+
+
+
+
+
 
 class CommentReaction(models.Model):
     REACTION_TYPES = (

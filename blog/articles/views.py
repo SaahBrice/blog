@@ -28,9 +28,10 @@ import os
 from django.views.generic import TemplateView
 from users.services import get_suggested_users
 from django.conf import settings
-
-
-
+from django.db.utils import OperationalError
+import time
+from django.core.cache import cache
+from datetime import timedelta
 
 
 
@@ -83,7 +84,6 @@ class ArticleListView(ListView):
         return context
 
 
-
 class ArticleDetailView(DetailView):
     model = Article
     template_name = 'articles/article_detail.html'
@@ -91,6 +91,7 @@ class ArticleDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if self.request.user.is_authenticated:
             context['is_following'] = self.request.user.following.filter(id=self.object.author.id).exists()
             context['is_bookmarked'] = self.object.bookmarks.filter(id=self.request.user.id).exists()
@@ -105,24 +106,38 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     http_method_names = ['post']
 
     def form_valid(self, form):
-        with transaction.atomic():
-            article = get_object_or_404(Article, pk=self.kwargs['pk'])
-            form.instance.article = article
-            form.instance.author = self.request.user
-            comment = form.save()
-            process_mentions(comment,self.request.user)
-            # Create notification for the article author
-            create_notification(
-                recipient=article.author,
-                notification_type='comment',
-                sender=self.request.user,
-                article=article,
-                comment=comment
-            )
-        comment_html = render_to_string('articles/comment.html', {'comment': comment}, request=self.request)
+        article = get_object_or_404(Article, pk=self.kwargs['pk'])
+        
+        # Check for recent duplicate comments
+        recent_comment = Comment.objects.filter(
+            article=article,
+            author=self.request.user,
+            content=form.cleaned_data['content'],
+            created_at__gte=timezone.now() - timedelta(seconds=30)
+        ).first()
+        
+        if recent_comment:
+            # If a recent duplicate exists, return it instead of creating a new one
+            comment = recent_comment
+        else:
+            # If no recent duplicate, create the new comment
+            with transaction.atomic():
+                comment = form.save(commit=False)
+                comment.article = article
+                comment.author = self.request.user
+                comment.save()
+                process_mentions(comment, self.request.user)
+                
+                # Create notification for the article author
+                create_notification(
+                    recipient=article.author,
+                    notification_type='comment',
+                    sender=self.request.user,
+                    article=article,
+                    comment=comment
+                )
 
-        # Apply render_mentions filter to the rendered HTML
-        #comment_html = Template("{% load comment_tags %}" + comment_html).render(Context({'comment': comment}))
+        comment_html = render_to_string('articles/comment.html', {'comment': comment}, request=self.request)
 
         return JsonResponse({
             'success': True,
@@ -132,12 +147,6 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
     def form_invalid(self, form):
         return JsonResponse({'success': False, 'error': form.errors})
-
-
-    def get_success_url(self):
-        return reverse_lazy('article_detail', kwargs={'pk': self.kwargs['pk']})
-
-
 
 
 
@@ -173,6 +182,7 @@ class ArticleUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         self.object = form.save()
+        cache.delete(f'article_content_{self.object.pk}')
         return JsonResponse({
             'success': True,
             'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
@@ -348,35 +358,46 @@ def add_reply(request, comment_id):
     parent_comment = get_object_or_404(Comment, id=comment_id)
     if request.method == 'POST':
         content = request.POST.get('content')
-        with transaction.atomic():
-            reply = Comment.objects.create(
-                article=parent_comment.article,
-                author=request.user,
-                content=content,
-                parent=parent_comment
-            )
-            process_mentions(reply, request.user)
+        if not content:
+            return JsonResponse({'success': False, 'error': 'Comment content cannot be empty'})
+
+        max_retries = 3
+        retry_delay = 0.1
+        reply = None
+        for attempt in range(max_retries):
+            try:
+                with transaction.atomic():
+                    if not reply:  # Only create the reply if it doesn't exist
+                        reply = Comment.objects.create(
+                            article=parent_comment.article,
+                            author=request.user,
+                            content=content,
+                            parent=parent_comment
+                        )
+                        process_mentions(reply, request.user)
+                    create_notification(
+                        recipient=parent_comment.author,
+                        notification_type='reply',
+                        sender=request.user,
+                        article=parent_comment.article,
+                        comment=reply
+                    )
+                break
+            except OperationalError:
+                if attempt == max_retries - 1:
+                    return JsonResponse({'success': False, 'error': 'Database error, please try again'})
+                time.sleep(retry_delay)
         
-        # Notify the parent comment author
-        create_notification(
-            recipient=parent_comment.author,
-            notification_type='reply',
-            sender=request.user,
-            article=parent_comment.article,
-            comment=reply
-        )
-        
-    reply_html = render_to_string('articles/comment.html', {'comment': reply}, request=request)
-
-    # Apply render_mentions filter to the rendered HTML
-    #reply_html = Template("{% load comment_tags %}" + reply_html).render(Context({'comment': reply}))
-
-    return JsonResponse({
-        'success': True,
-        'reply_html': reply_html,
-        'comment_count': parent_comment.article.comment_count
-    })
-
+        if reply:
+            reply_html = render_to_string('articles/comment.html', {'comment': reply}, request=request)
+            return JsonResponse({
+                'success': True,
+                'reply_html': reply_html,
+                'comment_count': parent_comment.article.comment_count
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to create reply'})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 
