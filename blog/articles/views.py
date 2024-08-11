@@ -34,6 +34,8 @@ from django.core.cache import cache
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 import logging
+from django.db.models import Count, Exists, OuterRef, BooleanField, Value
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,30 +62,69 @@ class ArticleListView(ListView):
     context_object_name = 'articles'
 
     def get_queryset(self):
-        return Article.objects.filter(status='published').order_by('-published_at')
+        queryset = Article.objects.filter(status='published').order_by('-published_at')
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_bookmarked=Exists(
+                    self.request.user.bookmarked_articles.filter(
+                        id=OuterRef('pk')
+                    )
+                )
+            )
+        else:
+            queryset = queryset.annotate(is_bookmarked=Value(False, output_field=BooleanField()))
+        return queryset
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         if user.is_authenticated:
             # New articles
-            context['new_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:10]
+            new_articles = Article.objects.filter(status='published').order_by('-published_at')[:10]
             
             # Articles from followees
             followee_articles = Article.objects.filter(
                 author__in=user.following.all(),
                 status='published'
             ).annotate(interaction_count=Count('reactions') + Count('comments')).order_by('-interaction_count')[:10]
-            context['followee_articles'] = followee_articles
+            
             
             # Discover articles
             user_tags = Article.objects.filter(reactions__user=user).values_list('tags__name', flat=True).distinct()
             discover_articles = Article.objects.filter(status='published').exclude(
                 tags__name__in=user_tags
-            ).order_by('?')[:5]
+            ).order_by('?')[:10]
+            
+            if user.is_authenticated:
+                new_articles = new_articles.annotate(
+                    is_bookmarked=Exists(
+                        user.bookmarked_articles.filter(
+                            id=OuterRef('pk')
+                        )
+                    )
+                )
+                followee_articles = followee_articles.annotate(
+                    is_bookmarked=Exists(
+                        user.bookmarked_articles.filter(
+                            id=OuterRef('pk')
+                        )
+                    )
+                )
+                discover_articles = discover_articles.annotate(
+                    is_bookmarked=Exists(
+                        user.bookmarked_articles.filter(
+                            id=OuterRef('pk')
+                        )
+                    )
+                )
+            
+            context['new_articles'] = new_articles
+            context['followee_articles'] = followee_articles
             context['discover_articles'] = discover_articles
-            context['tags']=Tag.objects.all()
+            context['tags'] = Tag.objects.all()
             context['suggested_users'] = get_suggested_users(user)
+
         return context
 
 

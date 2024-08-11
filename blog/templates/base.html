@@ -72,9 +72,9 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-[#F7F4ED] min-h-screen flex flex-col">
+<body class=" min-h-screen flex flex-col">
     {% csrf_token %}
-    <header class="navbar fixed top-0 left-0 w-full bg-[#F7F4ED] z-30">
+    <header class="navbar fixed top-0 left-0 w-full z-30">
         <nav class="container mx-auto flex justify-between items-center p-5">
             <div class="text-4xl font-bold text-gray-800 font-angkor">
                 <a href="{% url 'article_list' %}" class="font-playfair text-4xl font-bold">
@@ -150,7 +150,7 @@
         {% endblock %}
     </main>
 
-    <footer class="footer fixed bottom-0 left-0 w-full hero-foot bg-[#F7F4ED] text-xs md:text-base z-30">
+    <footer class="footer fixed bottom-0 left-0 w-full hero-foot  text-xs md:text-base z-30">
         <div class="max-w-7xl mx-auto py-2 md:py-4 px-2 md:px-4 flex flex-col md:flex-row items-center justify-between">
             <div class="flex justify-center space-x-4 md:space-x-6 order-2 md:order-2">
                 <a href="#" class="text-gray-400 hover:text-gray-500">
