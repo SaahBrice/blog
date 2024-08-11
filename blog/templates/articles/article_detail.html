@@ -13,6 +13,9 @@
 
 {% block content %}
 <h2>{{ article.title }}</h2>
+{% if article.thumbnail %}
+    <img src="{{ article.thumbnail.url }}" alt="{{ article.title }} thumbnail" class="article-thumbnail">
+{% endif %}
 <p>Author: {{ article.author.username }}
     {% if article.author.is_verified %}
         <span class="badge">Verified</span>

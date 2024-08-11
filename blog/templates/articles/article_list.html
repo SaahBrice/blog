@@ -1,99 +1,256 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+        font-size: 14px;
+    }
+    .article-row {
+        display: flex;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .article-row:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .article-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+    }
+    .article-content {
+        flex: 1;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .tag {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 9999px;
+        color: #4b5563;
+        font-weight: 500;
+    }
+    .featured-article {
+        margin-bottom: 4rem;
+        position: relative;
+    }
+    .featured-article .article-image {
+        height: 500px;
+        width: 100%;
+    }
+    .featured-article .content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        color: white;
+        padding: 2rem;
+    }
+    .category-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        position: relative;
+        display: inline-block;
+    }
+    .category-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background-color: #000;
+    }
+    .sidebar {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 2rem;
+    }
+    .tab-container {
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .tab-container.sticky {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid #e5e7eb;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    .tab {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    .tab.active {
+        border-bottom-color: #000;
+        font-weight: 600;
+    }
+    .tab-content {
+        display: none;
+        padding-top: 2rem;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .status-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+    }
+    .status-icon.writer { background-color: #10B981; }
+    .status-icon.premium { background-color: #F59E0B; }
+    .status-icon.verified { background-color: #3B82F6; }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Articles</h2>
+<div class="container mx-auto px-4 py-12">
+    <!-- Featured Article -->
+    {% if featured_article %}
+    <div class="featured-article">
+        <img src="{{ featured_article.image.url }}" alt="{{ featured_article.title }}" class="article-image w-full">
+        <div class="content">
+            <h2 class="text-3xl font-bold mb-4">{{ featured_article.title }}</h2>
+            <p class="text-base mb-6 opacity-90">{{ featured_article.excerpt }}</p>
+            <a href="{% url 'article_detail' featured_article.pk %}" class="inline-block bg-white text-black px-6 py-2 font-semibold hover:bg-opacity-90 transition">Read Article</a>
+        </div>
+    </div>
+    {% endif %}
 
-<div>
-    <h3>Tags</h3>
-    {% for tag in tags %}
-        <a href="{% url 'article_by_tag' tag.slug %}" {% if tag.slug == current_tag %}style="font-weight: bold;"{% endif %}>{{ tag.name }}</a>
-    {% endfor %}
+    <div class="flex flex-wrap -mx-4">
+        <!-- Main content -->
+        <div class="w-full lg:w-2/3 px-4">
+            <!-- Tabs -->
+            <div class="tab-container">
+                <div class="tabs">
+                    <div class="tab active" data-tab="new">Latest Articles</div>
+                    <div class="tab" data-tab="network">From Your Network</div>
+                    <div class="tab" data-tab="discover">Discover</div>
+                </div>
+            </div>
+
+            <!-- Tab contents -->
+            <div id="new" class="tab-content active">
+                {% include "articles/article_row.html" with articles=new_articles %}
+            </div>
+            <div id="network" class="tab-content">
+                {% include "articles/article_row.html" with articles=followee_articles %}
+            </div>
+            <div id="discover" class="tab-content">
+                {% include "articles/article_row.html" with articles=discover_articles %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="w-full lg:w-1/3 px-4">
+            <div class="sidebar sticky top-20">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'article_create' %}" class="block w-full bg-black text-white text-center py-2 mb-4 font-semibold hover:bg-opacity-90 transition">Create Article</a>
+                    <a href="{% url 'bookmarked_articles' %}" class="block w-full bg-gray-100 text-center py-2 mb-6 font-semibold hover:bg-gray-200 transition">Saved Articles</a>
+                {% endif %}
+                
+                <div class="mb-6">
+                    <h3 class="font-bold text-lg mb-3">Popular Tags</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in tags %}
+                            <a href="{% url 'article_by_tag' tag.slug %}" class="tag hover:bg-gray-100 transition">
+                                {{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if suggested_users %}
+                    <div>
+                        <h3 class="font-bold text-lg mb-3">Suggested Writers</h3>
+                        <ul>
+                            {% for suggested_user in suggested_users %}
+                                <li class="mb-4 last:mb-0">
+                                    <a href="{% url 'user_profile' username=suggested_user.username %}" class="flex items-center hover:bg-gray-50 p-2 transition">
+                                        <img src="{{ suggested_user.profile_picture.url }}" alt="{{ suggested_user.username }}" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <span class="font-semibold block">{{ suggested_user.username }}</span>
+                                            <span class="text-xs text-gray-500">{{ suggested_user.bio|truncatechars:40 }}</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
 
-{% if suggested_users %}
-<div class="suggested-users">
-    <h3>Suggested Writers</h3>
-    <ul>
-        {% for suggested_user in suggested_users %}
-            <li>
-                <a href="{% url 'user_profile' username=suggested_user.username %}">
-                    {{ suggested_user.username }}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Implement lazy loading for images
+    const lazyImages = document.querySelectorAll('.article-image');
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('lazy');
+                observer.unobserve(img);
+            }
+        });
+    });
 
+    lazyImages.forEach(img => imageObserver.observe(img));
 
-{% if user.is_authenticated %}
-    <a href="{% url 'article_create' %}">Create New Article</a>
-    <a href="{% url 'bookmarked_articles' %}">Saved Articles</a>
+    // Tab functionality
+    const tabContainer = document.querySelector('.tab-container');
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const sticky = tabContainer.offsetTop;
 
-    <h3>New Articles</h3>
-    <ul>
-    {% for article in new_articles %}
-        <li>
-            <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
-            <p>Reactions: {{ article.total_reactions }} | Comments: {{ article.comment_count }}</p>
-            <small>Tags: {% for tag in article.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
-        </li>
-    {% empty %}
-        <li>No new articles available.</li>
-    {% endfor %}
-    </ul>
-    
-    
-    
-    <h3>Articles from People You Follow</h3>
-        <ul>
-        {% for article in followee_articles %}
-            <li>
-                <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
-                <p>Reactions: {{ article.total_reactions }} | Comments: {{ article.comment_count }}</p>
-                <small>Tags: {% for tag in article.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
-            </li>
-        {% empty %}
-            <li>No articles from people you follow.</li>
-        {% endfor %}
-        </ul>
-    
-        <h3>Discover New Topics</h3>
-        <ul>
-        {% for article in discover_articles %}
-            <li>
-                <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
-                <p>Reactions: {{ article.total_reactions }} | Comments: {{ article.comment_count }}</p>
-                <small>Tags: {% for tag in article.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
-            </li>
-        {% empty %}
-            <li>No articles to discover.</li>
-        {% endfor %}
-        </ul>
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
 
-
-
-{% endif %}
-
-
-
-
-
-
-
-
-
-
-
-
-{% for article in articles %}
-    <li>
-        <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
-        <p>Reactions: {{ article.total_reactions }} | Comments: {{ article.comment_count }}</p>
-        <small>Tags: {% for tag in article.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
-    </li>
-{% empty %}
-    <li>No articles available.</li>
-{% endfor %}
-</ul>
+    // Sticky tab bar functionality
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset >= sticky) {
+            tabContainer.classList.add('sticky');
+            document.body.style.paddingTop = tabContainer.offsetHeight + 'px';
+        } else {
+            tabContainer.classList.remove('sticky');
+            document.body.style.paddingTop = 0;
+        }
+    });
+});
+</script>
 {% endblock %}

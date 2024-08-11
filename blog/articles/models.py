@@ -6,11 +6,19 @@ from django.utils import timezone
 import json
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import logging
+import sys
+
+
+logger = logging.getLogger(__name__)
 
 
 def validate_file_size(value):
     filesize = value.size
-    if filesize > 10 * 1024 * 1024:  # 10 MB
+    if filesize > 5 * 1024 * 1024:  # 10 MB
         raise ValidationError("The maximum file size that can be uploaded is 10 MB")
 
 
@@ -19,6 +27,7 @@ class Article(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     image = models.ImageField(upload_to='article_images/', validators=[validate_file_size], null=True, blank=True)
+    thumbnail = models.ImageField(upload_to='article_thumbnails/', validators=[validate_file_size], null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -28,7 +37,57 @@ class Article(models.Model):
     tags = TaggableManager()
     bookmarks = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='bookmarked_articles', blank=True)
 
+    def compress_image(self):
+        if not self.thumbnail:
+            return
 
+        try:
+            img = Image.open(self.thumbnail)
+            
+            if img.format.lower() not in ['jpeg', 'jpg', 'png', 'gif']:
+                raise ValueError(f"Unsupported image format: {img.format}")
+
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            output = BytesIO()
+            
+            # Attempt to compress the image
+            img.save(output, format='JPEG', quality=30)  # Compress by 70%
+            output.seek(0)
+            
+            # Check if compression actually reduced file size
+            if output.getbuffer().nbytes >= self.thumbnail.size:
+                logger.warning(f"Compression did not reduce file size for {self.thumbnail.name}")
+                return  # Skip compression if it didn't reduce file size
+            
+            self.thumbnail = InMemoryUploadedFile(
+                output,
+                'ImageField',
+                f"{self.thumbnail.name.split('.')[0]}.jpg",
+                'image/jpeg',
+                output.getbuffer().nbytes,
+                None
+            )
+        except IOError as e:
+            logger.error(f"IOError while compressing image: {str(e)}")
+            raise ValidationError("Error occurred while processing the image. Please try again.")
+        except ValueError as e:
+            logger.error(f"ValueError while compressing image: {str(e)}")
+            raise ValidationError(str(e))
+        except Exception as e:
+            logger.error(f"Unexpected error while compressing image: {str(e)}")
+            raise ValidationError("An unexpected error occurred while processing the image. Please try again.")
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:  # New instance
+            super().save(*args, **kwargs)
+            try:
+                self.compress_image()
+            except ValidationError as e:
+                # If compression fails, we still want to save the original image
+                logger.warning(f"Image compression failed, saving original: {str(e)}")
+        super().save(*args, **kwargs)
 
     def get_content_as_html(self):
         try:

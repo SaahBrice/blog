@@ -3,16 +3,35 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.default.min.css">
+<style>
+    #thumbnail-preview-container {
+        max-width: 200px;
+        max-height: 200px;
+        margin-top: 10px;
+    }
+    #thumbnail-preview {
+        max-width: 100%;
+        max-height: 100%;
+        display: none;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <h2>{% if form.instance.pk %}Edit Article{% else %}Create New Article{% endif %}</h2>
-<form method="post" id="article-form" action="{% if form.instance.pk %}{% url 'article_update' form.instance.pk %}{% else %}{% url 'article_create' %}{% endif %}">
+<form method="post" id="article-form" action="{% if form.instance.pk %}{% url 'article_update' form.instance.pk %}{% else %}{% url 'article_create' %}{% endif %}" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.title }}
     {{ form.language }}
     {{ form.status }}
     {{ form.tags }}
+    <div>
+        <label for="{{ form.thumbnail.id_for_label }}">Thumbnail:</label>
+        {{ form.thumbnail }}
+    </div>
+    <div id="thumbnail-preview-container">
+        <img id="thumbnail-preview" src="{% if form.instance.thumbnail %}{{ form.instance.thumbnail.url }}{% endif %}" alt="Thumbnail preview" />
+    </div>
     <div id="editorjs"></div>
     {{ form.content }}
     <button type="submit">Save</button>

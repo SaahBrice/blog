@@ -73,32 +73,61 @@ $(document).ready(function() {
         }
     });
 
+    // Image preview functionality
+    $('#id_thumbnail').on('change', function() {
+        const file = this.files[0];
+        const reader = new FileReader();
+        const $preview = $('#thumbnail-preview');
+
+        reader.onloadend = function () {
+            $preview.attr('src', reader.result);
+            $preview.show();
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+        } else {
+            $preview.attr('src', '');
+            $preview.hide();
+        }
+    });
+
+    // Show existing thumbnail if it exists
+    if ($('#thumbnail-preview').attr('src')) {
+        $('#thumbnail-preview').show();
+    }
 
     // Form submission
     $('#article-form').on('submit', function(e) {
         e.preventDefault();
         
         editor.save().then((outputData) => {
-            document.getElementById('id_content').value = JSON.stringify(outputData);
+            var formData = new FormData(this);
+            formData.set('content', JSON.stringify(outputData));
             
-            // Use AJAX to submit the form
             $.ajax({
                 url: $(this).attr('action'),
                 type: 'POST',
-                data: $(this).serialize(),
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     if (response.success) {
                         window.location.href = response.redirect_url;
                     } else {
-                        alert('Error saving article: ' + response.error);
+                        alert('Error saving article: ' + JSON.stringify(response.error));
                     }
                 },
-                error: function() {
-                    alert('An error occurred while saving the article.');
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    alert('An error occurred while saving the article. Please check the console for details.');
                 }
             });
         }).catch((error) => {
             console.log('Saving failed: ', error)
         });
     });
+
+    // Debug: Log when the script has finished loading
+    console.log('Article form script loaded');
 });

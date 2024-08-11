@@ -32,7 +32,10 @@ from django.db.utils import OperationalError
 import time
 from django.core.cache import cache
 from datetime import timedelta
+from django.core.exceptions import ValidationError
+import logging
 
+logger = logging.getLogger(__name__)
 
 
 
@@ -47,7 +50,7 @@ class WelcomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['featured_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:5]
+        context['featured_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:10]
         return context
 
 
@@ -64,13 +67,13 @@ class ArticleListView(ListView):
         user = self.request.user
         if user.is_authenticated:
             # New articles
-            context['new_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:5]
+            context['new_articles'] = Article.objects.filter(status='published').order_by('-published_at')[:10]
             
             # Articles from followees
             followee_articles = Article.objects.filter(
                 author__in=user.following.all(),
                 status='published'
-            ).annotate(interaction_count=Count('reactions') + Count('comments')).order_by('-interaction_count')[:5]
+            ).annotate(interaction_count=Count('reactions') + Count('comments')).order_by('-interaction_count')[:10]
             context['followee_articles'] = followee_articles
             
             # Discover articles
@@ -150,7 +153,6 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
 
 
-
 class ArticleCreateView(LoginRequiredMixin, CreateView):
     model = Article
     form_class = ArticleForm
@@ -159,17 +161,39 @@ class ArticleCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        self.object = form.save()
-        return JsonResponse({
-            'success': True,
-            'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
-        })
+        try:
+            self.object = form.save()
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
+            })
+        except ValidationError as e:
+            logger.error(f"ValidationError in ArticleCreateView: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+        except Exception as e:
+            logger.error(f"Unexpected error in ArticleCreateView: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': "An unexpected error occurred. Please try again."
+            })
 
     def form_invalid(self, form):
+        logger.error(f"Form invalid in ArticleCreateView: {form.errors}")
         return JsonResponse({
             'success': False,
             'error': form.errors
         })
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        files = request.FILES
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
 
 class ArticleUpdateView(LoginRequiredMixin, UpdateView):
     model = Article
@@ -181,18 +205,42 @@ class ArticleUpdateView(LoginRequiredMixin, UpdateView):
         return Article.objects.filter(author=self.request.user)
 
     def form_valid(self, form):
-        self.object = form.save()
-        cache.delete(f'article_content_{self.object.pk}')
-        return JsonResponse({
-            'success': True,
-            'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
-        })
+        try:
+            self.object = form.save()
+            cache.delete(f'article_content_{self.object.pk}')
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('article_detail', kwargs={'pk': self.object.pk})
+            })
+        except ValidationError as e:
+            logger.error(f"ValidationError in ArticleUpdateView: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+        except Exception as e:
+            logger.error(f"Unexpected error in ArticleUpdateView: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': "An unexpected error occurred. Please try again."
+            })
 
     def form_invalid(self, form):
+        logger.error(f"Form invalid in ArticleUpdateView: {form.errors}")
         return JsonResponse({
             'success': False,
             'error': form.errors
         })
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        files = request.FILES
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
 
 class ArticlesByTagView(ListView):
     model = Article
