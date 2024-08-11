@@ -71,6 +71,7 @@
 {% if user == user_profile %}
     <a href="{% url 'user_profile_edit' %}">Edit Profile</a>
     <a href="{% url 'followers_list' %}">View Followers</a>
+    <a href="{% url 'account_logout' %}">Logout</a>
 {% endif %}
 
 <h3>Recent Articles</h3>

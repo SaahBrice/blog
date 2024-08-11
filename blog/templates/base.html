@@ -1,52 +1,237 @@
 <!DOCTYPE html>
 {% load static %}
-
-<html>
+<html lang="en">
 <head>
-    <title>{% block title %}237APP{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}237{% endblock %}</title>
     <script
         src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
         crossorigin="anonymous">
     </script>
-    
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900;700&family=Open+Sans:wght@400;600&family=Caveat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Angkor&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@mojs/core"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['"Playfair Display"', 'serif'],
+                        'body': ['"Open Sans"', 'sans-serif'],
+                        'angkor': ['Angkor', 'cursive'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .mobile-menu-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 300px;
+            height: 100%;
+            background-color: white;
+            z-index: 50;
+            transition: right 0.3s ease-in-out;
+        }
+        .mobile-menu.active, .mobile-menu-backdrop.active {
+            display: block;
+        }
+        .mobile-menu.active {
+            right: 0;
+        }
+        @media (min-width: 768px) {
+            .mobile-menu, .mobile-menu-backdrop {
+                display: none !important;
+            }
+        }
+        .navbar, .footer {
+            transition: transform 0.3s ease-in-out;
+        }
+        .navbar--hidden {
+            transform: translateY(-100%);
+        }
+        .footer--hidden {
+            transform: translateY(100%);
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="bg-[#F7F4ED] min-h-screen flex flex-col">
     {% csrf_token %}
-    <header>
-        
-        <nav>
-            
+    <header class="navbar fixed top-0 left-0 w-full bg-[#F7F4ED] z-30">
+        <nav class="container mx-auto flex justify-between items-center p-5">
+            <div class="text-4xl font-bold text-gray-800 font-angkor">
+                <a href="{% url 'article_list' %}" class="font-playfair text-4xl font-bold">
+                    237
+                </a>
+            </div>
             {% if user.is_authenticated %}
-            <a href="{% url 'article_list' %}">Articles</a>
-                <form method="get" action="{% url 'search' %}">
-                    <input type="text" name="q" placeholder="Search articles">
-                    <button type="submit">Search</button>
-                </form>
-                <a href="{% url 'notification_list' %}">Notifications ({{ user.unread_notifications_count }})</a>
-                <a href="{% url 'activity_feed' %}">Activity Feed</a>
-                <a href="{% url 'following_list' %}">Following</a>
-                <a href="{% url 'followers_list' %}">Followers</a>
-                <a href="{% url 'user_profile' user.username %}">Profile</a>
-                <a href="{% url 'account_logout' %}">Logout</a>
+                <div class="hidden md:flex items-center space-x-8">
+                    <form method="get" action="{% url 'search' %}">
+                        <input type="text" class="text-sm" name="q" placeholder="Search articles">
+                        <button class="text-gray-800 hover:text-gray-500 text-sm" type="submit">Search</button>
+                    </form>
+                    <a href="{% url 'article_list' %}" class="text-gray-800 hover:text-gray-500 text-sm">New Gists</a>
+                    <a href="{% url 'notification_list' %}" class="text-gray-800 hover:text-gray-500 text-sm">Notifications</a>
+                    <a href="{% url 'activity_feed' %}" class="text-gray-800 hover:text-gray-500 text-sm">Activity Feed</a>
+                    <a href="{% url 'following_list' %}" class="text-gray-800 hover:text-gray-500 text-sm">Connections</a>
+                    <a href="{% url 'followers_list' %}" class="text-gray-800 hover:text-gray-500 text-sm">Followers</a>
+                    <a href="{% url 'user_profile' user.username %}" class="text-gray-800 hover:text-gray-500 text-sm">Profile</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-800 hover:text-gray-900 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
             {% else %}
-                <a href="{% url 'welcome' %}">Home</a>
-                <a href="{% url 'article_list' %}">Articles</a>
-                <a href="{% url 'account_login' %}">Login</a>
-                <a href="{% url 'account_signup' %}">Sign Up</a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="{% url 'welcome' %}" class="text-gray-800 hover:text-gray-500 text-sm">Home</a>
+                <a href="{% url 'account_login' %}" class="text-gray-800 hover:text-gray-500 text-sm">Sign In</a>
+                <a href="{% url 'account_signup' %}" class="bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 text-bold font-medium text-white px-4 py-1 rounded-full hover:from-green-700 hover:via-red-700 hover:to-yellow-500 text-sm">Sign up</a>
+            </div>
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" class="text-gray-800 hover:text-gray-900 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
             {% endif %}
-
         </nav>
     </header>
-    <main>
+
+    <div id="mobile-menu-backdrop" class="mobile-menu-backdrop hidden md:hidden"></div>
+    <div id="mobile-menu" class="mobile-menu hidden md:hidden">
+        <div class="p-6">
+            <button id="close-menu" class="absolute top-4 right-4 text-gray-600 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            {% if user.is_authenticated %}
+                <form method="get" action="{% url 'search' %}">
+                    <input type="text" class="text-sm" name="q" placeholder="Search articles">
+                    <button class="text-gray-800 hover:text-gray-500 text-sm" type="submit">Search</button>
+                </form>
+                <a href="{% url 'article_list' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">New Gists</a>
+                <a href="{% url 'notification_list' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Notifications</a>
+                <a href="{% url 'activity_feed' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Activity Feed</a>
+                <a href="{% url 'following_list' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Connections</a>
+                <a href="{% url 'followers_list' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Followers</a>
+                <a href="{% url 'user_profile' user.username %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Profile</a>
+            {% else %}
+                <a href="{% url 'welcome' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Home</a>
+                <a href="{% url 'account_login' %}" class="block text-gray-800 hover:text-gray-500 text-sm mt-4">Sign In</a>
+                <a href="{% url 'account_signup' %}" class="block bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 text-bold text-white px-4 py-1 rounded-full hover:from-green-700 hover:via-red-700 hover:to-yellow-500 mt-4">Sign up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <main class="my-40">
         {% block content %}
         {% endblock %}
     </main>
-    <footer>
-        <!-- Add footer content here -->
+
+    <footer class="footer fixed bottom-0 left-0 w-full hero-foot bg-[#F7F4ED] text-xs md:text-base z-30">
+        <div class="max-w-7xl mx-auto py-2 md:py-4 px-2 md:px-4 flex flex-col md:flex-row items-center justify-between">
+            <div class="flex justify-center space-x-4 md:space-x-6 order-2 md:order-2">
+                <a href="#" class="text-gray-400 hover:text-gray-500">
+                    Terms
+                </a>
+                <a href="#" class="text-gray-400 hover:text-gray-500">
+                    Privacy
+                </a>
+            </div>
+            <div class="mt-2 md:mt-0 order-1 md:order-1">
+                <p class="text-center text-gray-400">&copy; 2024 237. All rights reserved.</p>
+            </div>
+        </div>
     </footer>
+
     {% block extra_js %}{% endblock %}
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="{% if message.tags %}{{ message.tags }}{% endif %} bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const closeMenuButton = document.getElementById('close-menu');
+
+            function openMobileMenu() {
+                mobileMenu.classList.add('active');
+                mobileMenuBackdrop.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileMenu() {
+                mobileMenu.classList.remove('active');
+                mobileMenuBackdrop.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', openMobileMenu);
+            }
+            if (closeMenuButton) {
+                closeMenuButton.addEventListener('click', closeMobileMenu);
+            }
+            if (mobileMenuBackdrop) {
+                mobileMenuBackdrop.addEventListener('click', closeMobileMenu);
+            }
+
+            // Close menu when clicking on a menu item (optional)
+            const mobileMenuItems = mobileMenu.querySelectorAll('a');
+            mobileMenuItems.forEach(item => {
+                item.addEventListener('click', closeMobileMenu);
+            });
+
+            // Sticky navbar and footer functionality
+            const navbar = document.querySelector('.navbar');
+            const footer = document.querySelector('.footer');
+            let lastScrollTop = 0;
+
+            window.addEventListener('scroll', () => {
+                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                if (scrollTop > lastScrollTop) {
+                    // Scrolling down
+                    navbar.classList.add('navbar--hidden');
+                    footer.classList.add('footer--hidden');
+                } else {
+                    // Scrolling up
+                    navbar.classList.remove('navbar--hidden');
+                    footer.classList.remove('footer--hidden');
+                }
+                lastScrollTop = scrollTop;
+            });
+        });
+    </script>
 </body>
 </html>
