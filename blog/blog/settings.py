@@ -34,7 +34,7 @@ ALLOWED_HOSTS = []
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': BASE_DIR/'django_cache',
+        'LOCATION': BASE_DIR / 'django_cache',
     }
 }
 
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'notifications',
     'taggit',
     'corsheaders',
+    'blog.apps.BlogConfig'
 
 ]
 

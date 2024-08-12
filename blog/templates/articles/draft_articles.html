@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4">Your Draft Gists</h1>
+    {% if drafts %}
+        <div class="space-y-4">
+            {% for draft in drafts %}
+                <div class="bg-white shadow-sm rounded-lg p-4">
+                    <h2 class="text-xl font-semibold">{{ draft.title }}</h2>
+                    <p class="text-gray-600 text-sm">Last updated: {{ draft.updated_at|date:"F d, Y" }}</p>
+                    <div class="mt-2">
+                        <a href="{% url 'article_update' draft.pk %}" class="text-blue-500 hover:underline">Edit</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You don't have any draft gists yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -289,12 +289,50 @@ class ArticlesByTagView(ListView):
     context_object_name = 'articles'
 
     def get_queryset(self):
-        return Article.objects.filter(tags__slug=self.kwargs['tag_slug'], status='published')
+        tag_slug = self.kwargs['tag_slug']
+        queryset = Article.objects.filter(tags__slug__iexact=tag_slug, status='published').order_by('-published_at')
+        
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_bookmarked=Exists(
+                    self.request.user.bookmarked_articles.filter(
+                        id=OuterRef('pk')
+                    )
+                )
+            )
+        else:
+            queryset = queryset.annotate(is_bookmarked=Value(False, output_field=BooleanField()))
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tags'] = Tag.objects.all()
-        context['current_tag'] = self.kwargs['tag_slug']
+        user = self.request.user
+        tag_slug = self.kwargs['tag_slug']
+
+        if user.is_authenticated:
+            # New articles with the specific tag
+            new_articles = self.get_queryset().order_by('-published_at')[:10]
+            
+            # Articles from followees with the specific tag
+            followee_articles = self.get_queryset().filter(
+                author__in=user.following.all()
+            ).annotate(interaction_count=Count('reactions') + Count('comments')).order_by('-interaction_count')[:10]
+            
+            # Discover articles with the specific tag
+            user_tags = Article.objects.filter(reactions__user=user).values_list('tags__name', flat=True).distinct()
+            discover_articles = self.get_queryset().exclude(
+                tags__name__in=user_tags
+            ).order_by('?')[:10]
+
+            context['new_articles'] = new_articles
+            context['followee_articles'] = followee_articles
+            context['discover_articles'] = discover_articles
+            context['tags'] = Tag.objects.all()
+            context['suggested_users'] = get_suggested_users(user)
+        
+        context['current_tag'] = tag_slug
+
         return context
     
 
@@ -586,3 +624,11 @@ def upload_image(request):
         })
     return JsonResponse({'success': 0})
 
+
+
+class DraftArticlesView(LoginRequiredMixin, ListView):
+    template_name = 'articles/draft_articles.html'
+    context_object_name = 'drafts'
+
+    def get_queryset(self):
+        return Article.objects.filter(author=self.request.user, status='draft').order_by('-created_at')

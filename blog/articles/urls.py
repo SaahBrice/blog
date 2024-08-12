@@ -1,8 +1,8 @@
 from django.urls import path,include
 from .views import (WelcomeView,upload_image,user_suggestions,get_tags, add_reply, toggle_comment_reaction, 
                     remove_bookmark, BookmarkedArticlesView, toggle_reaction, toggle_bookmark, toggle_follow_author, 
-                    ArticlesByTagView, CommentCreateView, ArticleListView, ArticleDetailView, ArticleCreateView, ArticleUpdateView
-                    )
+                    ArticlesByTagView, CommentCreateView, ArticleListView, ArticleDetailView, ArticleCreateView, ArticleUpdateView,
+                    DraftArticlesView)
 
 urlpatterns = [
     path('', WelcomeView.as_view(), name='welcome'),
@@ -22,4 +22,5 @@ urlpatterns = [
     path('articles/get-tags/', get_tags, name='get_tags'),
     path('articles/user-suggestions/', user_suggestions, name='user_suggestions'),
     path('articles/upload-image/', upload_image, name='upload_image'),
+    path('drafts/', DraftArticlesView.as_view(), name='draft_articles'),
 ]

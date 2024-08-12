@@ -1,18 +1,92 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 
 {% block content %}
-<h2>Bookmarked Articles</h2>
-<ul>
-{% for article in articles %}
-    <li>
-        <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
-        <form method="post" action="{% url 'remove_bookmark' article.pk %}">
-            {% csrf_token %}
-            <button type="submit">Remove Bookmark</button>
-        </form>
-    </li>
-{% empty %}
-    <li>No bookmarked articles.</li>
-{% endfor %}
-</ul>
+<div class="container mx-auto px-4 py-8">
+    <h2 class="text-3xl font-bold mb-6">Bookmarked Articles</h2>
+
+    <div class="max-w-3xl mx-auto space-y-6">
+        {% for article in articles %}
+        <div class="bg-[#f8f9fa] shadow-sm rounded-lg overflow-hidden mb-6 transition-shadow duration-300 hover:shadow-md">
+            <div class="flex p-4">
+                <div class="w-1/5 min-w-[100px] mr-4 flex items-center">
+                    <img src="{{ article.thumbnail.url }}" alt="{{ article.title }}" class="w-full h-24 object-cover rounded-md lazy">
+                </div>
+                <div class="w-4/5 flex flex-col justify-between pr-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <img src="{{ article.author.profile_picture.url }}" alt="{{ article.author.username }}" class="w-5 h-5 rounded-full mr-2">
+                                <span class="text-xs text-gray-500 font-light">{{ article.author.username }}</span>
+                                {% if article.author.is_verified %}
+                                <svg class="w-4 h-4 ml-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                {% endif %}
+                                {% if article.author.is_premium %}
+                                <svg class="w-4 h-4 ml-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                </svg>
+                                {% endif %}
+                                {% if article.author.is_writer %}
+                                <svg class="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <form method="post" action="{% url 'remove_bookmark' article.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                        <a href="{% url 'article_detail' article.pk %}" class="block">
+                            <h3 class="font-bold text-2xl mb-2 hover:text-indigo-600 transition-colors duration-200">
+                                {{ article.title }}
+                            </h3>
+                            <p class="text-gray-600 text-sm mb-3 pr-4">
+                                {{ article.content|get_first_paragraph }}
+                            </p>
+                        </a>
+                    </div>
+                    <div class="flex items-center text-xs text-gray-500">
+                        <span title="{{ article.created_at|date:'F j, Y, g:i a' }}" class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ article.created_at|simple_timesince }}
+                        </span>
+                        <span class="mx-2 text-gray-300">|</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="flex items-center" title="Claps">
+                                👏 {{ article.clap_count }}
+                            </span>
+                            <span class="text-gray-300">•</span>
+                            <span class="flex items-center" title="Laughs">
+                                😂 {{ article.laugh_count }}
+                            </span>
+                            <span class="text-gray-300">•</span>
+                            <span class="flex items-center" title="Sad reactions">
+                                😢 {{ article.sad_count }}
+                            </span>
+                        </div>
+                        <span class="mx-2 text-gray-300">|</span>
+                        <span class="flex items-center" title="Comments">
+                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                            </svg>
+                            {{ article.comment_count }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 italic text-center py-8">No bookmarked articles.</p>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
