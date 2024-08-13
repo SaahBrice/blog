@@ -154,9 +154,19 @@ $(document).ready(function() {
             data: form.serialize(),
             success: function(response) {
                 if (response.success) {
-                    $('#comments-section').prepend($(response.comment_html));
+                    var commentsSection = $('#comments-section');
+                    commentsSection.append($(response.comment_html));
                     form.find('textarea').val('');
                     $('#comment-count').text(response.comment_count);
+                    
+                    // Show comments section if hidden
+                    commentsSection.removeClass('hidden');
+                    
+                    // Scroll to the new comment
+                    var newComment = commentsSection.children().last();
+                    $('html, body').animate({
+                        scrollTop: newComment.offset().top - 100
+                    }, 1000);
                 } else {
                     alert(response.error);
                 }
@@ -176,39 +186,60 @@ $(document).ready(function() {
 
     
     // Handle reply form submissions (including dynamically added ones)
-    $(document).off('submit', '.reply-form').on('submit', '.reply-form', function(e) {
+    $(document).on('submit', '.reply-form', function(e) {
         e.preventDefault();
         var form = $(this);
-        var submitButton = form.find('button[type="submit"]');
+        var url = form.attr('action');
+        var textarea = form.find('textarea');
+        var content = textarea.val().trim();
+        var parentCommentId = form.closest('.comment').attr('id').replace('comment-', '');
         
-        if (form.data('submitting')) return false;
-        form.data('submitting', true);
-        submitButton.prop('disabled', true);
+        if (!content) {
+            alert('Please enter a comment before submitting.');
+            return;
+        }
         
         $.ajax({
             type: 'POST',
-            url: form.attr('action'),
+            url: url,
             data: form.serialize(),
             success: function(response) {
                 if (response.success) {
-                    form.siblings('.replies').append($(response.reply_html));
-                    form.find('textarea').val('');
+                    var replySection = $('.reply-form');
+                    replySection.addClass('hidden');
+                    addReplyToDOM(response.reply_html, parentCommentId);
                     $('#comment-count').text(response.comment_count);
+                    form.find('textarea').val('');  // Clear the textarea
                 } else {
                     alert(response.error);
                 }
             },
             error: function() {
                 alert('An error occurred while posting your reply.');
-            },
-            complete: function() {
-                form.data('submitting', false);
-                submitButton.prop('disabled', false);
             }
         });
     });
 
-
+    function addReplyToDOM(replyHtml, parentCommentId) {
+        var parentComment = $('#comment-' + parentCommentId);
+        var subcommentsContainer = parentComment.find('#subcomments-' + parentCommentId);
+        
+        if (subcommentsContainer.length === 0) {
+            parentComment.append('<div id="subcomments-' + parentCommentId + '" class="ml-11 mt-2"></div>');
+            subcommentsContainer = parentComment.find('#subcomments-' + parentCommentId);
+        }
+        
+        subcommentsContainer.append(replyHtml);
+        subcommentsContainer.removeClass('hidden');
+        
+        // Update reply count
+        var replyCountElem = parentComment.find('.toggle-subcomments .reply-count');
+        var currentCount = parseInt(replyCountElem.text(), 10);
+        replyCountElem.text(currentCount + 1);
+        
+        // Ensure the toggle button is visible
+        parentComment.find('.toggle-subcomments').removeClass('hidden');
+    }
 
 
 

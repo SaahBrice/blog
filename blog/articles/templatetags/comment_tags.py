@@ -21,3 +21,12 @@ def render_mentions(value):
         return f'@{username}'
     
     return mark_safe(re.sub(mention_pattern, replace_mention, value))
+
+@register.filter
+def split(value, key):
+    return value.split(key)
+
+
+@register.filter
+def get_comment_reaction_count(comment, reaction_type):
+    return comment.reactions.filter(reaction_type=reaction_type).count()
