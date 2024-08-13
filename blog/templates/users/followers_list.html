@@ -1,15 +1,289 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+        font-size: 14px;
+    }
+    .article-row {
+        display: flex;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .article-row:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .article-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+    }
+    .article-content {
+        flex: 1;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .tag {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 9999px;
+        color: #4b5563;
+        font-weight: 500;
+    }
+    .featured-article {
+        margin-bottom: 4rem;
+        position: relative;
+    }
+    .featured-article .article-image {
+        height: 500px;
+        width: 100%;
+    }
+    .featured-article .content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        color: white;
+        padding: 2rem;
+    }
+    .category-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        position: relative;
+        display: inline-block;
+    }
+    .category-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background-color: #000;
+    }
+    .sidebar {
+        border: 1px solid #e5e7eb;
+        padding: 2rem;
+    }
+    .tab-container {
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .tab-container.sticky {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid #e5e7eb;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    .tab {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    .tab.active {
+        border-bottom-color: #000;
+        font-weight: 600;
+    }
+    .tab-content {
+        display: none;
+        padding-top: 2rem;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .status-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+    }
+    .status-icon.writer { background-color: #10B981; }
+    .status-icon.premium { background-color: #F59E0B; }
+    .status-icon.verified { background-color: #3B82F6; }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Your Followers</h2>
-<ul>
-{% for follower in followers %}
-    <li>
-        <a href="{% url 'user_profile' follower.username %}">{{ follower.username }}</a>
-        <a href="{% url 'toggle_block' follower.username %}">Block</a>
-    </li>
-{% empty %}
-    <li>You don't have any followers yet.</li>
-{% endfor %}
-</ul>
+<div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Your Followers</h1>
+
+    <div class="flex flex-wrap -mx-4">
+        <!-- Main content -->
+        <div class="w-full lg:w-2/3 px-4">
+            <div class="space-y-4  following-list">
+                {% include "users/followers_row.html" with followers=followers %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="w-full lg:w-1/3 px-4">
+            <div class="sidebar sticky top-20">
+                {% if user.is_authenticated %}
+                <div class="flex justify-around mb-6">
+                    <!-- Create Gist Icon -->
+                    <div class="flex flex-col items-center">
+                        <a href="{% url 'article_create' %}" class="text-gray-600 hover:text-gray-900" title="Create Gist">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                        <span class="text-xs text-gray-600 mt-1">Create Gist</span>
+                    </div>
+                    <!-- Saved Gists Icon -->
+                    <div class="flex flex-col items-center">
+                        <a href="{% url 'bookmarked_articles' %}" class="text-gray-400 hover:text-gray-700" title="Saved Gists">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                            </svg>
+                        </a>
+                        <span class="text-xs text-gray-500 mt-1">Saved Gists</span>
+                    </div>
+                    <!-- Drafts Icon -->
+                    <div class="flex flex-col items-center">
+                        <a href="{% url 'draft_articles' %}" class="text-gray-400 hover:text-gray-700" title="Drafts">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </a>
+                        <span class="text-xs text-gray-500 mt-1">Drafts</span>
+                    </div>
+                </div>
+                {% endif %}
+            
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">Popular Tags</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in tags %}
+                        <a href="{% url 'article_by_tag' tag.slug %}" class="px-3 py-1 text-xs text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100 transition">{{ tag.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            
+                {% if suggested_users %}
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">Suggested Writers</h3>
+                    <ul class="space-y-4">
+                        {% for suggested_user in suggested_users %}
+                        <li class="flex items-center justify-between">
+                            <a href="{% url 'user_profile' username=suggested_user.username %}" class="flex items-center">
+                                <img src="{{ suggested_user.profile_picture.url }}" alt="{{ suggested_user.username }}" class="w-8 h-8 rounded-full mr-3">
+                                <div class="text-sm">
+                                    <div class="flex items-center">
+                                        <span class="font-medium text-gray-800">{{ suggested_user.username }}</span>
+                                        {% if suggested_user.is_verified %}
+                                        <svg class="w-4 h-4 ml-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {% endif %}
+                                        {% if suggested_user.is_premium %}
+                                        <svg class="w-4 h-4 ml-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                        </svg>
+                                        {% endif %}
+                                        {% if suggested_user.is_writer %}
+                                        <svg class="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        <span>{{ suggested_user.followers_count }} followers</span>
+                                        <span class="ml-2">{{ suggested_user.posts_count }} gists</span>
+                                        <span class="ml-2">{{ suggested_user.reactions_count|default_if_none:0 }} reactions</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <button class="follow-btn text-xs text-gray-600 border border-gray-300 py-1 px-2 rounded-full hover:bg-gray-100 transition" data-username="{{ suggested_user.username }}">Follow</button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const followButtons = document.querySelectorAll('.follow-btn');
+    const csrftoken = getCookie('csrftoken');
+    
+    followButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const authorId = this.dataset.authorId;
+            const isFollowing = this.textContent.trim() === 'Following';
+            
+            fetch(`/articles/follow-author/${authorId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.is_following !== undefined) {
+                    this.textContent = data.is_following ? 'Following' : 'Follow';
+                    this.classList.toggle('bg-gray-200', data.is_following);
+                } else {
+                    console.error('Unexpected response:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revert button state on error
+                this.textContent = isFollowing ? 'Following' : 'Follow';
+                this.classList.toggle('bg-gray-200', isFollowing);
+            });
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
 {% endblock %}

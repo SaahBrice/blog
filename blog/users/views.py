@@ -6,13 +6,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User
 from .forms import UserProfileForm, CustomLoginForm, CustomSignupForm
-from .services import toggle_follow, toggle_block
+from .services import get_suggested_users, toggle_follow, toggle_block
 from articles.models import Article
 from django.contrib import messages
 from django.contrib.auth import login
 from allauth.account.utils import complete_signup
 from allauth.account import app_settings
 from django.shortcuts import render, redirect
+from taggit.models import Tag
+from django.db.models import Count, Q
+
 
 
 class UserListView(ListView):
@@ -57,7 +60,20 @@ class FollowingListView(LoginRequiredMixin, ListView):
     context_object_name = 'following'
 
     def get_queryset(self):
-        return self.request.user.following.all()
+        return self.request.user.following.annotate(
+            published_articles_count=Count('article', filter=Q(article__status='published'))
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tags'] = Tag.objects.all()[:10]  # Limit to top 10 tags
+        context['suggested_users'] = get_suggested_users(self.request.user)
+        return context
+
+
+
+
+
 
 class FollowersListView(LoginRequiredMixin, ListView):
     model = User
@@ -65,7 +81,15 @@ class FollowersListView(LoginRequiredMixin, ListView):
     context_object_name = 'followers'
 
     def get_queryset(self):
-        return self.request.user.followers.all()
+        return self.request.user.followers.annotate(
+            published_articles_count=Count('article', filter=Q(article__status='published'))
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tags'] = Tag.objects.all()[:10]  # Limit to top 10 tags
+        context['suggested_users'] = get_suggested_users(self.request.user)
+        return context
 
 @login_required
 def toggle_follow_view(request, username):

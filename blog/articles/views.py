@@ -350,6 +350,7 @@ class ActivityFeedView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         if self.request.is_ajax():
             context['template'] = 'users/activity_feed_articles.html'
+
         return context
 
 @login_required
@@ -409,14 +410,59 @@ def toggle_reaction(request, pk):
 
 
 
-
 class BookmarkedArticlesView(LoginRequiredMixin, ListView):
     model = Article
     template_name = 'articles/bookmarked_articles.html'
     context_object_name = 'articles'
 
     def get_queryset(self):
-        return self.request.user.bookmarked_articles.all()
+        return (Article.objects.filter(bookmarks=self.request.user, status='published')
+                .order_by('-published_at')
+                .annotate(is_bookmarked=Value(True, output_field=BooleanField())))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        # New articles (from bookmarks)
+        new_articles = self.get_queryset()[:10]
+
+        # Articles from followees (from bookmarks)
+        followee_articles = (self.get_queryset()
+                             .filter(author__in=user.following.all())
+                             .annotate(interaction_count=Count('reactions') + Count('comments'))
+                             .order_by('-interaction_count')[:10])
+
+        # Discover articles (from bookmarks, excluding user's tags)
+        user_tags = Article.objects.filter(reactions__user=user).values_list('tags__name', flat=True).distinct()
+        discover_articles = (self.get_queryset()
+                             .exclude(tags__name__in=user_tags)
+                             .order_by('?')[:10])
+
+        context['new_articles'] = new_articles
+        context['followee_articles'] = followee_articles
+        context['discover_articles'] = discover_articles
+        context['tags'] = Tag.objects.all()
+        context['suggested_users'] = get_suggested_users(user)
+
+        return context
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @login_required
 def remove_bookmark(request, pk):

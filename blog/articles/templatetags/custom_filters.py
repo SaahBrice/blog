@@ -8,7 +8,7 @@ from django.utils.timezone import is_aware, make_aware, get_current_timezone
 register = template.Library()
 
 @register.filter(name='get_first_paragraph')
-def get_first_paragraph(content, word_limit=40):
+def get_first_paragraph(content, word_limit=20):
     try:
         content_json = json.loads(content)
         for block in content_json.get('blocks', []):
@@ -16,8 +16,8 @@ def get_first_paragraph(content, word_limit=40):
                 text = block.get('data', {}).get('text', '')
                 words = text.split()
                 truncated_text = ' '.join(words[:word_limit])
-                if len(truncated_text) > 300:
-                    truncated_text = truncated_text[:297] + '...'
+                if len(truncated_text) > 100:
+                    truncated_text = truncated_text[:100] + '...'
                 elif len(words) > word_limit:
                     truncated_text += '...'
                 return mark_safe(truncated_text)
