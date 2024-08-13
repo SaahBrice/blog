@@ -1,29 +1,35 @@
 .reaction-container {
     display: inline-block;
-    position: relative;
+    position: relative; /* Ensure the parent is positioned relative */
     margin-right: 10px;
+    padding-top: 40px;
 }
+
 
 .reaction-btn {
     font-size: 20px;
     cursor: pointer;
 }
 
+
 .reaction-options {
     position: absolute;
-    top: 100%;
-    left: 0;
+    bottom: 100%; /* Move the options above the button */
+    left: 50%; 
+    transform: translateX(-50%); /* Center the options horizontally */
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     padding: 5px;
     z-index: 1000;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    display: none; /* Initially hide the options */
 }
 
 .reaction-amount {
-    display: block;
-    width: 100%;
-    padding: 5px;
-    margin: 2px 0;
+    display: inline-block; /* Change this from 'block' to 'inline-block' */
+    padding: 5px 10px; /* Adjust padding for better spacing */
+    margin: 0 2px; /* Change vertical margin to horizontal */
     text-align: center;
     cursor: pointer;
 }

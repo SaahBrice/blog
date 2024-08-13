@@ -34,6 +34,7 @@ $(document).ready(function() {
 
     $('.reaction-btn').click(function(e) {
         e.preventDefault();
+        e.stopPropagation();
         $(this).siblings('.reaction-options').toggle();
     });
 
@@ -303,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Starting TTS initialization');
                     await tts.initialize(articleContent);
                     isInitialized = true;
-                    ttsButton.textContent = 'Read Article';
+                    ttsButton.textContent = 'Read gist';
                     ttsButton.disabled = false;
                     console.log('TTS initialization complete');
                 } catch (error) {
@@ -317,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 console.log('Triggering playPause');
                 const isPlaying = await tts.playPause();
-                ttsButton.textContent = isPlaying ? 'Pause' : 'Read Article';
+                ttsButton.textContent = isPlaying ? 'Pause' : 'Read gist';
             } catch (error) {
                 console.error('TTS Playback Error:', error);
                 ttsButton.textContent = 'TTS Error';
