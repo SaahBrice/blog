@@ -3,106 +3,161 @@
 {% load article_tags %}
 {% load comment_tags %}
 
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/reaction.css' %}">
 <link rel="stylesheet" href="{% static 'css/tribute.css' %}">
 <link rel="stylesheet" href="{% static 'css/mentions.css' %}">
+<style>
+    .article-title {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        font-size: 2.5rem;
+        line-height: 1.2;
+        letter-spacing: -0.016em;
+        font-weight: 700;
+    }
+    .article-content {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 21px;
+        line-height: 1.58;
+        letter-spacing: -0.003em;
+    }
+    .article-thumbnail {
+        width: 100%;
+        max-height: 480px;
+        object-fit: cover;
+        object-position: center;
+    }
+</style>
 {% endblock %}
-</head>
 
 {% block content %}
-<h2>{{ article.title }}</h2>
-{% if article.thumbnail %}
-    <img src="{{ article.thumbnail.url }}" alt="{{ article.title }} thumbnail" class="article-thumbnail">
-{% endif %}
-<p>Author: {{ article.author.username }}
-    {% if article.author.is_verified %}
-        <span class="badge">Verified</span>
-    {% endif %}
-    {% if article.author.is_premium %}
-        <span class="badge">Premium</span>
-    {% endif %}
-    {% if article.author.is_writer %}
-        <span class="badge">Writer</span>
-    {% endif %}</p>
-<p>Published: {{ article.published_at }}</p>
-
-<p>Tags: {% for tag in article.tags.all %}
-    <a href="{% url 'article_by_tag' tag.slug %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
-{% endfor %}</p>
-<div id="article-content">
-    {% with content_html=article.get_content_as_html %}
-        {% if content_html %}
-            {{ content_html|safe }}
-        {% else %}
-            <p>{{ article.content }}</p>
-        {% endif %}
-    {% endwith %}
-</div>
-
-
-<button id="ttsButton">Read Article</button>
-<input type="hidden" id="speechify-api-key" value="{{ speechify_api_key }}">
-
-
-
-{% if user == article.author %}
-    <a href="{% url 'article_update' article.pk %}">Edit Article</a>
-{% endif %}
-
-
-
-<h3>Comments (<span id="comment-count">{{ article.comment_count }}</span>)</h3>
-<div id="comments-section">
-{% for comment in article.comments.all %}
-    {% if not comment.parent %}
-        {% include "articles/comment.html" with comment=comment %}
-    {% endif %}
-{% empty %}
-    <p>No comments yet.</p>
-{% endfor %}
-</div>
-
-
-
-
-
-{% if user.is_authenticated %}
-    <button id="followAuthorBtn" data-author-id="{{ article.author.id }}">
-        {% if is_following %}Unfollow{% else %}Follow{% endif %} Author
-    </button>
-    <button id="bookmarkBtn" data-article-id="{{ article.id }}">
-        {% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
-    </button>
-    <div class="reactions">
-        {% for reaction_type in "clap,sad,laugh"|split:"," %}
-            <div class="reaction-container">
-                <button class="reaction-btn" data-type="{{ reaction_type }}" data-article-id="{{ article.id }}">
-                    {% if reaction_type == "clap" %}👏
-                    {% elif reaction_type == "sad" %}😢
-                    {% elif reaction_type == "laugh" %}😂
-                    {% endif %}
-                    <span id="{{ reaction_type }}-count">{{ article|get_reaction_count:reaction_type }}</span>
-                </button>
-                <div class="reaction-options" style="display:none;">
-                    <button class="reaction-amount" data-amount="10">+10</button>
-                    <button class="reaction-amount" data-amount="50">+50</button>
-                    <button class="reaction-amount" data-amount="100">+100</button>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <article class="prose lg:prose-xl">
+        <h1 class="article-title mb-6">{{ article.title }}</h1>
+        
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+                <img src="{{ article.author.profile_picture.url }}" alt="{{ article.author.username }}" class="w-12 h-12 rounded-full mr-4">
+                <div>
+                    <p class="text-lg font-semibold text-gray-800 flex items-center">
+                        {{ article.author.username }}
+                        {% if article.author.is_verified %}
+                            <svg class="w-5 h-5 ml-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                        {% endif %}
+                        {% if article.author.is_premium %}
+                            <svg class="w-5 h-5 ml-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                            </svg>
+                        {% endif %}
+                        {% if article.author.is_writer %}
+                            <svg class="w-5 h-5 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        {% endif %}
+                    </p>
+                    <p class="text-sm text-gray-500">Published: {{ article.published_at|date:"F j, Y" }}</p>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-    <h4>Add a comment</h4>
-    <form method="post" action="{% url 'comment_create' article.pk %}" id="comment-form">
-        {% csrf_token %}
-        {{ comment_form.content }}
-        <div id="mention-autocomplete"></div>
-        <button type="submit">Submit Comment</button>
-    </form>
-{% else %}
-    <p>Please <a href="{% url 'account_login' %}">log in</a> to comment.</p>
-{% endif %}
+            <div class="flex space-x-4">
+                <button id="ttsButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Read</button>
+                <button id="bookmarkBtn" data-article-id="{{ article.id }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
+                    {% if is_bookmarked %}
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path>
+                        </svg>
+                    {% else %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                        </svg>
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            {% for tag in article.tags.all %}
+                <a href="{% url 'article_by_tag' tag.slug %}" class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">#{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+
+        {% if article.thumbnail %}
+            <div class="mb-12">
+                <img src="{{ article.thumbnail.url }}" alt="{{ article.title }}" class="article-thumbnail rounded-lg shadow-md">
+            </div>
+        {% endif %}
+
+        <div id="article-content" class="article-content">
+            {% with content_html=article.get_content_as_html %}
+                {% if content_html %}
+                    {{ content_html|safe }}
+                {% else %}
+                    <p>{{ article.content }}</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </article>
+
+    <input type="hidden" id="speechify-api-key" value="{{ speechify_api_key }}">
+
+    {% if user == article.author %}
+        <div class="mt-8">
+            <a href="{% url 'article_update' article.pk %}" class="text-blue-500 hover:text-blue-700">Edit Article</a>
+        </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <div class="mt-8 flex items-center space-x-4">
+            <button id="followAuthorBtn" data-author-id="{{ article.author.id }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                {% if is_following %}Unfollow{% else %}Follow{% endif %}
+            </button>
+            <div class="reactions flex space-x-4">
+                {% for reaction_type in "clap,sad,laugh"|split:"," %}
+                    <div class="reaction-container">
+                        <button class="reaction-btn bg-gray-200 hover:bg-gray-300 rounded-full p-2" data-type="{{ reaction_type }}" data-article-id="{{ article.id }}">
+                            {% if reaction_type == "clap" %}👏
+                            {% elif reaction_type == "sad" %}😢
+                            {% elif reaction_type == "laugh" %}😂
+                            {% endif %}
+                            <span id="{{ reaction_type }}-count">{{ article|get_reaction_count:reaction_type }}</span>
+                        </button>
+                        <div class="reaction-options hidden mt-2">
+                            <button class="reaction-amount bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-1" data-amount="10">+10</button>
+                            <button class="reaction-amount bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-1" data-amount="50">+50</button>
+                            <button class="reaction-amount bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded" data-amount="100">+100</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-12">
+            <h3 class="text-2xl font-bold mb-4">Comments (<span id="comment-count">{{ article.comment_count }}</span>)</h3>
+            <div id="comments-section">
+                {% for comment in article.comments.all %}
+                    {% if not comment.parent %}
+                        {% include "articles/comment.html" with comment=comment %}
+                    {% endif %}
+                {% empty %}
+                    <p class="text-gray-500 italic">No comments yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h4 class="text-xl font-bold mb-4">Add a comment</h4>
+            <form method="post" action="{% url 'comment_create' article.pk %}" id="comment-form">
+                {% csrf_token %}
+                <textarea name="content" class="w-full p-2 border rounded" rows="4"></textarea>
+                <div id="mention-autocomplete"></div>
+                <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit Comment</button>
+            </form>
+        </div>
+    {% else %}
+        <p class="mt-8 text-gray-600">Please <a href="{% url 'account_login' %}" class="text-blue-500 hover:text-blue-700">log in</a> to comment.</p>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block extra_js %}
