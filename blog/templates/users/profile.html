@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 {% endblock %}
 
+
 {% block content %}
 <div class="container mx-auto px-4 py-12">
     <div class="flex flex-wrap -mx-4">
@@ -14,11 +15,9 @@
         <div class="w-full lg:w-2/3 px-4">
             <h2 class="text-2xl font-bold mb-6">{{ user_profile.username }}'s Articles</h2>
             <div class="space-y-6">
-                {% for article in articles %}
+
                     {% include "articles/article_row.html" with article=article %}
-                {% empty %}
-                    <p class="text-gray-500 italic">No articles published yet.</p>
-                {% endfor %}
+
             </div>
         </div>
         

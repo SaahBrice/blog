@@ -34,7 +34,7 @@ class CustomSignupForm(SignupForm):
 
 class UserProfileForm(forms.ModelForm):
     profile_picture = forms.ImageField(required=False, widget=forms.FileInput(attrs={'id': 'imageUpload'}))
-    bio = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False)
+    bio = forms.CharField(widget=forms.Textarea(attrs={'class':'w-full '}), required=False)
     location = forms.CharField(max_length=100, required=False)
     website = forms.URLField(required=False)
     class Meta:

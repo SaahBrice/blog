@@ -73,9 +73,9 @@
     {% csrf_token %}
     <header class="navbar fixed top-0 left-0 w-full z-30">
         <nav class="container mx-auto flex justify-between items-center p-5">
-            <div class="text-4xl font-bold text-gray-800 font-angkor">
-                <a href="{% url 'article_list' %}" class="font-playfair text-4xl font-bold">
-                    237
+            <div class="">
+                <a href="{% url 'article_list' %}" class="">
+                    <img src="{% static 'logo.png' %}" alt="237" class="inline-block" style="max-height: 25px;" />
                 </a>
             </div>
             {% if user.is_authenticated %}
