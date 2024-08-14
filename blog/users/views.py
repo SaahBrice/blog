@@ -47,6 +47,17 @@ class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'users/profile_edit.html'
     success_url = reverse_lazy('user_profile')
 
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        profile_picture = self.request.FILES.get('profile_picture')
+        if profile_picture:
+            user.profile_picture = profile_picture
+        user.save()
+        messages.success(self.request, 'Your profile has been updated successfully.')
+        return super().form_valid(form)
+
+
     def get_object(self, queryset=None):
         return self.request.user
 

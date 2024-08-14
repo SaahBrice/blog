@@ -4539,3 +4539,4 @@ Traceback (most recent call last):
   File "C:\Users\saahb\OneDrive\Documents\GitHub\blog\.venv\Lib\site-packages\django\template\base.py", line 603, in find_filter
     raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
 django.template.exceptions.TemplateSyntaxError: Invalid filter: 'add_class'
+Form invalid in ArticleUpdateView: <ul class="errorlist"><li>thumbnail<ul class="errorlist"><li>Please either submit a file or check the clear checkbox, not both.</li></ul></li></ul>

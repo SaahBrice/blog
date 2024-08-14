@@ -33,6 +33,15 @@ class CustomSignupForm(SignupForm):
 
 
 class UserProfileForm(forms.ModelForm):
+    profile_picture = forms.ImageField(required=False, widget=forms.FileInput(attrs={'id': 'imageUpload'}))
+    bio = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False)
+    location = forms.CharField(max_length=100, required=False)
+    website = forms.URLField(required=False)
     class Meta:
         model = TUser
         fields = ['username', 'email', 'bio', 'profile_picture', 'location', 'website']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['profile_picture'].initial = self.instance.profile_picture
