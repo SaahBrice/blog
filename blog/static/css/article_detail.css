@@ -135,8 +135,6 @@
 
 
 
-
-
 .sticky-reactions-box {
     position: fixed;
     bottom: 50px;
@@ -147,12 +145,16 @@
     box-shadow: 0 2px 10px rgba(255, 3, 3, 0.1);
     display: flex;
     align-items: center;
-    padding: 8px 16px;
+    justify-content: center;
+   
     z-index: 49;
 }
 
 .sticky-reactions-box .reaction-container {
     position: relative;
+    display: flex;
+    align-items: center; /* Vertically centers items within the container */
+    justify-content: center;
 }
 
 .sticky-reactions-box .reaction-options {
@@ -161,6 +163,20 @@
     transform: translateX(-50%);
     margin-bottom: 8px;
 }
+
+
+
+
+
+.sticky-reactions-box .reactions {
+    display: flex;
+    align-items: center; /* Vertically centers items within the flex container */
+    justify-content: center; /* Horizontally centers items within the flex container */
+}
+
+
+
+
 
 .sticky-reactions-box .reaction-btn,
 .sticky-reactions-box #toggleComments {
@@ -172,6 +188,7 @@
     font-size: 14px;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .sticky-reactions-box #toggleComments svg {
@@ -182,3 +199,5 @@
 .sticky-reactions-box #comment-count {
     margin-left: 4px;
 }
+
+

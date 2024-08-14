@@ -31,6 +31,13 @@
                 <div class="comment-reactions" data-comment-id="{{ comment.id }}">
                     {% for reaction_type in "clap,laugh,sad"|split:"," %}
                         <div class="comment-reaction-container">
+                            <div class="reaction-options hidden">
+                                <div class="flex space-x-2">
+                                    <button class="comment-reaction-amount bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white  font-bold  px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="10">+10</button>
+                                    <button class="comment-reaction-amount bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white  font-bold  px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="50">+50</button>
+                                    <button class="comment-reaction-amount bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white font-bold  px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="100">+100</button>
+                                </div>
+                            </div>
                             <button class="comment-reaction text-xs text-gray-500 hover:text-gray-700" data-type="{{ reaction_type }}" data-comment-id="{{ comment.id }}">
                                 {% if reaction_type == "clap" %}👏
                                 {% elif reaction_type == "laugh" %}😂
@@ -38,13 +45,7 @@
                                 {% endif %}
                                 <span class="{{ reaction_type }}-count">{{ comment|get_comment_reaction_count:reaction_type }}</span>
                             </button>
-                            <div class="reaction-options hidden">
-                                <div class="flex space-x-2">
-                                    <button class="reaction-amount bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="10">+10</button>
-                                    <button class="reaction-amount bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="50">+50</button>
-                                    <button class="reaction-amount bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="100">+100</button>
-                                </div>
-                            </div>
+
                         </div>
                     {% endfor %}
                 </div>
@@ -64,7 +65,7 @@
         <form method="post" action="{% url 'add_reply' comment.id %}" class="reply-form">
             {% csrf_token %}
             <textarea name="content" placeholder="Write a reply..." class="w-full p-2 text-sm border rounded"></textarea>
-            <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded">Send</button>
+            <button type="submit" class="mt-2 bg-gray-200 hover:bg-gray-300  text-xs font-bold py-1 px-4 rounded-full">Send</button>
         </form>
     </div>
     {% if comment.replies.exists %}

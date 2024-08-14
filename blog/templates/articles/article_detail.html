@@ -119,31 +119,33 @@
 
     <div class="sticky-reactions-box">
         <div class="reactions flex space-x-4">
-            {% for reaction_type in "clap,sad,laugh"|split:"," %}
+            {% for reaction_type in "clap,laugh,sad"|split:"," %}
                 <div class="reaction-container">
-                    <div class="reaction-options hidden ">
-                        <div class="flex space-x-3">
-                            <button class="reaction-amount bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="10">+10</button>
-                            <button class="reaction-amount bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="50">+50</button>
-                            <button class="reaction-amount bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="100">+100</button>
-                        </div>
-                    </div>
-                    <button class="reaction-btn bg-gray-200 hover:bg-gray-300 rounded-full " data-type="{{ reaction_type }}" data-article-id="{{ article.id }}">
+
+                    <button class="reaction-btn bg-gray-200 hover:bg-green-500 rounded-full " data-type="{{ reaction_type }}" data-article-id="{{ article.id }}">
                         {% if reaction_type == "clap" %}👏
                         {% elif reaction_type == "sad" %}😢
                         {% elif reaction_type == "laugh" %}😂
                         {% endif %}
                         <span id="{{ reaction_type }}-count">{{ article|get_reaction_count:reaction_type }}</span>
                     </button>
+                    <div class="reaction-options hidden ">
+                        <div class="flex space-x-3">
+                            <button class="reaction-amount bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white  font-bold  px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="10">+10</button>
+                            <button class="reaction-amount bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white  font-bold  px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="50">+50</button>
+                            <button class="reaction-amount bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white font-bold  px-3 rounded-full text-sm transition duration-300 ease-in-out" data-amount="100">+100</button>
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
+            <button id="toggleComments" class="text-gray-600 hover:text-green-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                </svg>
+                <span id="comment-count">{{ article.comment_count }}</span>
+            </button>
         </div>
-        <button id="toggleComments" class="text-gray-600 hover:text-blue-700 ">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-            </svg>
-            <span id="comment-count">{{ article.comment_count }}</span>
-        </button>
+
     </div>
 
     

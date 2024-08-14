@@ -24,7 +24,7 @@ def validate_file_size(value):
 
 
 class Article(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=70)
     content = models.TextField()
     image = models.ImageField(upload_to='article_images/', validators=[validate_file_size], null=True, blank=True)
     thumbnail = models.ImageField(upload_to='article_thumbnails/', validators=[validate_file_size], null=True, blank=True)

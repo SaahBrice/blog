@@ -84,9 +84,8 @@ $(document).ready(function() {
     $(document).on('click', '.comment-reaction-amount, .reply .comment-reaction-amount', function() {
         const btn = $(this);
         const amount = btn.data('amount');
-        const commentId = btn.closest('.comment-reactions').data('comment-id');
+        const commentId = btn.closest('.comment-reaction-container').find('.comment-reaction').data('comment-id');
         const reactionType = btn.closest('.comment-reaction-container').find('.comment-reaction').data('type');
-        
         $.ajax({
             url: `/articles/comment/${commentId}/react/`,
             type: 'POST',
