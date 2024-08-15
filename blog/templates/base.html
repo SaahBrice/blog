@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}237{% endblock %}</title>
+    <title>{% block title %}SAAH{% endblock %}</title>
     <script
         src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
@@ -94,7 +94,7 @@
         <nav class="container mx-auto flex justify-between items-center p-5">
             <div class="">
                 <a href="{% url 'article_list' %}" class="">
-                    <img src="{% static 'logo.png' %}" alt="237" class="inline-block" style="max-height: 25px;" />
+                    <img src="{% static 'logo.png' %}" alt="SAAH" class="inline-block" style="max-height: 30px;" />
                 </a>
             </div>
             {% if user.is_authenticated %}
@@ -194,7 +194,7 @@
         </div>
     </div>
 
-    <main class="my-20">
+    <main class="my-12">
         {% block content %}
         {% endblock %}
     </main>
