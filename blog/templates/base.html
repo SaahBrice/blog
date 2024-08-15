@@ -217,15 +217,7 @@
 
     {% block extra_js %}{% endblock %}
 
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="{% if message.tags %}{{ message.tags }}{% endif %} bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3" role="alert">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+
 
 
     {% if user.is_authenticated %}
@@ -363,4 +355,5 @@
         });
     </script>
 </body>
+
 </html>
