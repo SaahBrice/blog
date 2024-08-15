@@ -133,6 +133,12 @@
 }
 
 
+.reaction-emoji {
+    font-size: 20px; /* Adjust this value to increase or decrease the size */
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+  }
 
 
 .sticky-reactions-box {
@@ -142,7 +148,7 @@
     transform: translateX(-50%);
     background-color: rgb(255, 255, 255);
     border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(255, 3, 3, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.432);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -184,7 +190,7 @@
     border: none;
     cursor: pointer;
     padding: 4px 8px;
-    margin: 0 4px;
+    margin: 5px 20px;
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -200,4 +206,19 @@
     margin-left: 4px;
 }
 
+.sticky-reactions-box #shareBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin: 0 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.sticky-reactions-box #shareBtn svg {
+    width: 20px;
+    height: 20px;
+}

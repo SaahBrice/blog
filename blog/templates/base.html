@@ -175,7 +175,7 @@
         </div>
     </div>
 
-    <main class="my-40">
+    <main class="my-20">
         {% block content %}
         {% endblock %}
     </main>
@@ -260,6 +260,10 @@
                 lastScrollTop = scrollTop;
             });
         });
+    </script>
+    <script src="{% static 'js/logout.js' %}"></script>
+    <script>
+        var logoutUrl = "{% url 'custom_logout' %}";
     </script>
 </body>
 </html>

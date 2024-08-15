@@ -19,7 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
-
+from blog.custom_auth_views import custom_logout
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('articles.urls')),
@@ -27,6 +27,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('search/', include('search.urls')),
     path('notifications/', include('notifications.urls')),
+    path('accounts/logout/', custom_logout, name='custom_logout'),
 ]
 
 # Serve media files in development

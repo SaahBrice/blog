@@ -70,7 +70,7 @@
                             {% else %}
                                 <a href="{% url 'toggle_premium' %}" class="btn-secondary block text-center mb-2">Cancel Premium</a>
                             {% endif %}
-                            <a href="{% url 'account_logout' %}" class="btn-tertiary block text-center text-gray-300 bg-gray-100">Logout</a>
+                            <a href="#" id='signOutBtn' class=" block text-center text-gray-300 bg-gray-100">Logout</a>
                         {% elif user.is_authenticated %}
                             <button id="followBtn" data-username="{{ user_profile.username }}" class="follow-btn py-2 bg-gradient-to-r from-green-500 via-red-500 to-yellow-500 hover:from-green-600 hover:via-red-600 hover:to-yellow-600 text-white rounded-full block w-full mb-2">
                                 {% if is_following %}Unfollow{% else %}Follow{% endif %}
