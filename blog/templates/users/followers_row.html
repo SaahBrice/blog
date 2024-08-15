@@ -1,29 +1,29 @@
 {% for user in followers %}
-<div class="border-b border-gray-200 py-4 px-4">
+<div class="border-b border-gray-200 py-2 sm:py-3 px-2 sm:px-4">
     <a href="{% url 'user_profile' username=user.username %}">
-    <div class="flex items-start space-x-4">
-        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-12 h-12 object-cover rounded-full">
+    <div class="flex items-start space-x-2 sm:space-x-4">
+        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-full">
         <div class="flex-grow">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <span class="font-semibold text-gray-800">{{ user.username }}</span>
                     {% if user.is_verified %}
-                    <svg class="w-4 h-4 ml-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
                     {% endif %}
                     {% if user.is_premium %}
-                    <svg class="w-4 h-4 ml-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
                     </svg>
                     {% endif %}
                     {% if user.is_writer %}
-                    <svg class="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                     {% endif %}
                 </div>
-                <button class="follow-btn text-xs text-gray-600 border border-gray-300 py-1 px-2 rounded-full hover:bg-gray-100 transition {% if user in request.user.following.all %}bg-gray-200{% endif %}" data-author-id="{{ user.id }}">
+                <button class="follow-btn text-xs text-gray-600 border border-gray-300 py-0.5 px-1.5 sm:py-1 sm:px-2 rounded-full hover:bg-gray-100 transition {% if user in request.user.following.all %}bg-gray-200{% endif %}" data-author-id="{{ user.id }}">
                     {% if user in request.user.following.all %}
                         Following
                     {% else %}
@@ -31,12 +31,12 @@
                     {% endif %}
                 </button>
             </div>
-            <p class="text-gray-600 text-sm mt-1">
+            <p class="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">
                 {{ user.bio|truncatewords:15 }}
             </p>
-            <div class="flex items-center text-xs text-gray-500 mt-2">
-                <span class="mr-3">{{ user.followers.count }} followers</span>
-                <span class="mr-3">{{ user.published_articles_count }} gists</span>
+            <div class="flex items-center text-xs text-gray-500 mt-1 sm:mt-2">
+                <span class="mr-2 sm:mr-3">{{ user.followers.count }} followers</span>
+                <span class="mr-2 sm:mr-3">{{ user.published_articles_count }} gists</span>
                 <span>Member since {{ user.date_joined|date:"M Y" }}</span>
             </div>
         </div>
