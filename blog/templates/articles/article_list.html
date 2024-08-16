@@ -291,14 +291,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabs = document.querySelectorAll('.tab');
     const tabContents = document.querySelectorAll('.tab-content');
     const sticky = tabContainer.offsetTop;
+    let loading = false;
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             tabContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(tab.dataset.tab).classList.add('active');
+            const activeContent = document.getElementById(tab.dataset.tab);
+            activeContent.classList.add('active');
+            if (activeContent.children.length === 0) {
+                loadMoreArticles();
+            }
+
         });
+    });
+    function loadMoreArticles() {
+        if (loading) return;
+
+        const activeTab = document.querySelector('.tab.active');
+        const activeContent = document.querySelector('.tab-content.active');
+        const page = parseInt(activeContent.dataset.page) + 1;
+        const type = activeTab.dataset.tab;
+
+        loading = true;
+
+        fetch(`?page=${page}&type=${type}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.html) {
+                activeContent.insertAdjacentHTML('beforeend', data.html);
+                activeContent.dataset.page = page;
+            }
+            loading = false;
+        });
+    }
+
+    window.addEventListener('scroll', () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+            loadMoreArticles();
+        }
     });
 
     // Sticky tab bar functionality

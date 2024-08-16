@@ -10,6 +10,7 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     location = models.CharField(max_length=100, blank=True)
     website = models.URLField(max_length=200, blank=True)
+    onesignal_player_id = models.CharField(max_length=36, blank=True, null=True)
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers')
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by')
     is_verified = models.BooleanField(default=False)

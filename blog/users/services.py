@@ -4,7 +4,7 @@ from django.db import models
 from .models import User, SiteSettings
 from articles.models import Reaction, Article
 from notifications.services import create_notification
-from django.db.models import Count, Sum, Q, OuterRef, Subquery
+from django.db.models import Count, Sum, Q, OuterRef, Subquery, IntegerField
 
 
 
@@ -39,9 +39,6 @@ def toggle_block(user, user_to_block):
 
 
 
-
-
-
 def get_suggested_users(user):
     settings = SiteSettings.load()
     cache_key = f'suggested_users_{user.id}'
@@ -56,16 +53,16 @@ def get_suggested_users(user):
         ).values_list('tags__name', flat=True).distinct()
 
         # If user has no interactions, get popular tags
-        if not user_interactions:
-            user_interactions = Article.objects.values_list('tags__name', flat=True).annotate(
+        if not user_interactions.exists():
+            user_interactions = Article.objects.values('tags__name').annotate(
                 tag_count=Count('id')
-            ).order_by('-tag_count')[:10]
+            ).order_by('-tag_count')[:10].values_list('tags__name', flat=True)
 
         reaction_subquery = Reaction.objects.filter(
             article__author=OuterRef('pk')
         ).values('article__author').annotate(
             total_reactions=Sum('count')
-        ).values('total_reactions')
+        ).values('total_reactions')[:1]
 
         suggested_users = User.objects.filter(
             is_manual_writer=True,
@@ -77,11 +74,28 @@ def get_suggested_users(user):
         ).annotate(
             posts_count=Count('article', filter=Q(article__status='published'), distinct=True),
             followers_count=Count('followers', distinct=True),
-            reactions_count=Subquery(reaction_subquery, output_field=models.IntegerField())
+            reactions_count=Subquery(reaction_subquery, output_field=IntegerField())
         ).filter(
             posts_count__gte=settings.min_articles_for_suggestions
         ).distinct().order_by('-posts_count')[:settings.max_suggested_users]
 
-        cache.set(cache_key, list(suggested_users), settings.suggestion_cache_timeout)
+        # If we don't have enough suggestions, add random users
+        if suggested_users.count() < settings.max_suggested_users:
+            additional_count = settings.max_suggested_users - suggested_users.count()
+            additional_users = User.objects.filter(
+                is_manual_writer=True,
+                is_verified=True,
+                is_premium=True
+            ).exclude(
+                Q(id=user.id) | Q(id__in=suggested_users.values_list('id', flat=True))
+            ).annotate(
+                posts_count=Count('article', filter=Q(article__status='published'), distinct=True),
+                followers_count=Count('followers', distinct=True),
+                reactions_count=Subquery(reaction_subquery, output_field=IntegerField())
+            ).order_by('?')[:additional_count]
+            
+            suggested_users = list(suggested_users) + list(additional_users)
+
+        cache.set(cache_key, suggested_users, settings.suggestion_cache_timeout)
 
     return suggested_users

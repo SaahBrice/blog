@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SAAH{% endblock %}</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'logo.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'logo.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'logo.png' %}">
     <script
         src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
@@ -354,6 +357,17 @@
             });
         });
     </script>
+
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+    <script>
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function() {
+        OneSignal.init({
+          appId: "{{ ONESIGNAL_APP_ID }}",
+        });
+      });
+    </script>
+    <script src="{% static 'js/onesignal-setup.js' %}"></script>
 </body>
 
 </html>

@@ -18,17 +18,31 @@ class CustomLoginForm(forms.Form):
         return email
 
 class CustomSignupForm(SignupForm):
+    username = forms.CharField(max_length=20, label='Username', 
+                               widget=forms.TextInput(attrs={'placeholder': 'Username'}))
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'w-full px-3 py-2 border rounded-md'})
         self.fields['email'].widget.attrs.update({'class': 'w-full px-3 py-2 border rounded-md'})
         self.fields['password1'].widget.attrs.update({'class': 'w-full px-3 py-2 border rounded-md'})
         self.fields['password2'].widget.attrs.update({'class': 'w-full px-3 py-2 border rounded-md'})
-
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken.")
+        return username
     def clean_email(self):
         email = self.cleaned_data['email']
         if User.objects.filter(email=email).exists():
             raise ValidationError("An account already exists with this email address.")
         return email
+
+    def save(self, request):
+        user = super().save(request)
+        user.username = self.cleaned_data['username']
+        user.save()
+        return user
+
 
 
 

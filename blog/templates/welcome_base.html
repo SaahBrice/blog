@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}237{% endblock %}</title>
+    <title>{% block title %}SAAH{% endblock %}</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'logo.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'logo.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'logo.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900;700&family=Open+Sans:wght@400;600&family=Caveat&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Angkor&display=swap" rel="stylesheet">
@@ -143,7 +147,9 @@
 <body class="bg-[#F7F4ED] min-h-screen flex flex-col">
     <header class="navbar bg-[#F7F4ED]">
         <nav class="container mx-auto flex justify-between items-center p-5">
-            <div class="text-4xl font-bold text-gray-800 font-angkor">237</div>
+            <a href="{% url 'welcome' %}" class="">
+                <img src="{% static 'logo.png' %}" alt="SAAH" class="inline-block" style="max-height: 50px;" />
+            </a>
             <div class="hidden md:flex items-center space-x-8">
                 <a href="{% url 'welcome' %}" class="text-gray-800 hover:text-gray-500 text-sm">Home</a>
                 <a href="{% url 'account_login' %}" class="text-gray-800 hover:text-gray-500 text-sm">Sign In</a>
@@ -178,7 +184,7 @@
         <nav class="container mx-auto flex justify-center py-4">
             <a href="#" class="text-gray-600 hover:text-gray-800 px-2 text-xs sm:text-sm">Privacy</a>
             <a href="#" class="text-gray-600 hover:text-gray-800 px-2 text-xs sm:text-sm">Terms</a>
-            <span class="text-gray-600 px-2 text-xs sm:text-sm">© 2024 237</span>
+            <span class="text-gray-600 px-2 text-xs sm:text-sm">© 2024 SAAH</span>
         </nav>
     </footer>
 

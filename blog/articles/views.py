@@ -35,7 +35,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 import logging
 from django.db.models import Count, Exists, OuterRef, BooleanField, Value
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +60,7 @@ class ArticleListView(ListView):
     model = Article
     template_name = 'articles/article_list.html'
     context_object_name = 'articles'
+    paginate_by = 10  # Number of articles to load each time
 
     def get_queryset(self):
         queryset = Article.objects.filter(status='published').order_by('-published_at')
@@ -80,58 +81,74 @@ class ArticleListView(ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         if user.is_authenticated:
-            # New articles
-            new_articles = Article.objects.filter(status='published').order_by('-published_at')[:10]
-            
-            # Articles from followees
-            followee_articles = Article.objects.filter(
-                author__in=user.following.all(),
-                status='published'
-            ).annotate(interaction_count=Count('reactions') + Count('comments')).order_by('-interaction_count')[:10]
-            
-            
-            # Discover articles
-            user_tags = Article.objects.filter(reactions__user=user).values_list('tags__name', flat=True).distinct()
-            discover_articles = Article.objects.filter(status='published').exclude(
-                tags__name__in=user_tags
-            ).order_by('?')[:10]
-            
-            if user.is_authenticated:
-                new_articles = new_articles.annotate(
-                    is_bookmarked=Exists(
-                        user.bookmarked_articles.filter(
-                            id=OuterRef('pk')
-                        )
-                    )
-                )
-                followee_articles = followee_articles.annotate(
-                    is_bookmarked=Exists(
-                        user.bookmarked_articles.filter(
-                            id=OuterRef('pk')
-                        )
-                    )
-                )
-                discover_articles = discover_articles.annotate(
-                    is_bookmarked=Exists(
-                        user.bookmarked_articles.filter(
-                            id=OuterRef('pk')
-                        )
-                    )
-                )
-            
-            context['new_articles'] = new_articles
-            context['followee_articles'] = followee_articles
-            context['discover_articles'] = discover_articles
+            context['new_articles'] = self.get_articles_by_type('new')
+            context['followee_articles'] = self.get_articles_by_type('followee')
+            context['discover_articles'] = self.get_articles_by_type('discover')
             context['tags'] = Tag.objects.all()
             context['suggested_users'] = get_suggested_users(user)
-
         return context
+
+    def get_articles_by_type(self, article_type, page=1):
+        user = self.request.user
+        if article_type == 'new':
+            queryset = self.get_queryset()
+        elif article_type == 'followee':
+            queryset = Article.objects.filter(
+                author__in=user.following.all(),
+                status='published'
+            ).annotate(
+                interaction_count=Count('reactions') + Count('comments'),
+                is_bookmarked=Exists(
+                    user.bookmarked_articles.filter(id=OuterRef('pk'))
+                )
+            ).order_by('-interaction_count')
+        elif article_type == 'discover':
+            user_tags = Article.objects.filter(reactions__user=user).values_list('tags__name', flat=True).distinct()
+            queryset = Article.objects.filter(status='published').exclude(
+                tags__name__in=user_tags
+            ).annotate(
+                is_bookmarked=Exists(
+                    user.bookmarked_articles.filter(id=OuterRef('pk'))
+                )
+            ).order_by('?')
+        else:
+            queryset = self.get_queryset()
+
+        paginator = Paginator(queryset, self.paginate_by)
+        try:
+            articles = paginator.page(page)
+        except PageNotAnInteger:
+            articles = paginator.page(1)
+        except EmptyPage:
+            articles = paginator.page(paginator.num_pages)
+
+        return articles
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            page = request.GET.get('page', 1)
+            article_type = request.GET.get('type', 'new')
+            
+            articles = self.get_articles_by_type(article_type, page)
+
+            html = render_to_string(
+                'articles/article_row.html', 
+                {'articles': articles},
+                request=request
+            )
+            return JsonResponse({
+                'html': html,
+                'has_more': articles.has_next(),
+            })
+        
+        return super().get(request, *args, **kwargs)
 
 
 class ArticleDetailView(DetailView):
     model = Article
     template_name = 'articles/article_detail.html'
     context_object_name = 'article'
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

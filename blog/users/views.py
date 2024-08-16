@@ -15,7 +15,7 @@ from allauth.account import app_settings
 from django.shortcuts import render, redirect
 from taggit.models import Tag
 from django.db.models import Count, Q
-
+from django.http import JsonResponse
 
 
 class UserListView(ListView):
@@ -178,3 +178,14 @@ def custom_signup(request):
     else:
         form = CustomSignupForm()
     return render(request, 'accounts/signup.html', {'form': form})
+
+
+
+@login_required
+def update_onesignal_id(request):
+    player_id = request.POST.get('onesignal_player_id')
+    if player_id:
+        request.user.onesignal_player_id = player_id
+        request.user.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)

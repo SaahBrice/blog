@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import toggle_premium, ActivityFeedView, UserListView, UserProfileView, UserProfileUpdateView, FollowingListView, FollowersListView, toggle_follow_view, toggle_block_view, custom_login, custom_signup
+from .views import update_onesignal_id, toggle_premium, ActivityFeedView, UserListView, UserProfileView, UserProfileUpdateView, FollowingListView, FollowersListView, toggle_follow_view, toggle_block_view, custom_login, custom_signup
 
 urlpatterns = [
     path('', UserListView.as_view(), name='user_list'),
@@ -13,4 +13,5 @@ urlpatterns = [
     path('toggle-premium/', toggle_premium, name='toggle_premium'),
     path('login/', custom_login, name='account_login'),
     path('signup/', custom_signup, name='account_signup'),
+    path('update-onesignal-id/', update_onesignal_id, name='update_onesignal_id'),
 ]
