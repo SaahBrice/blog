@@ -53,7 +53,7 @@ $(document).ready(function() {
                 class: ImageTool,
                 config: {
                     endpoints: {
-                        byFile: '/articles/upload-image/', // Adjust this path as needed
+                        byFile: '/articles/upload-image/', 
                     },
                     field: 'image',
                     types: 'image/*'
@@ -128,6 +128,5 @@ $(document).ready(function() {
         });
     });
 
-    // Debug: Log when the script has finished loading
     console.log('Article form script loaded');
 });
