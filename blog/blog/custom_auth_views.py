@@ -7,4 +7,4 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def custom_logout(request):
     logout(request)
-    return redirect('welcome')  # Replace 'home' with your desired redirect URL after logout
+    return redirect('welcome')  
