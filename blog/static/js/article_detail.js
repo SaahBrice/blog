@@ -281,10 +281,6 @@ function csrfSafeMethod(method) {
 
 
 
-// ... (keep your existing jQuery code) ...
-
-// ... (keep your existing jQuery code) ...
-
 document.addEventListener('DOMContentLoaded', () => {
     const ttsButton = document.getElementById('ttsButton');
     const articleContent = document.getElementById('article-content').innerHTML;
