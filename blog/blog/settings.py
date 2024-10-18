@@ -230,7 +230,7 @@ SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
 AVATAR_FONT_PATH = 'static/font/font.ttf'  # Replace with the path to a TTF font file
 AVATAR_SIZE = 150  # Default avatar size
 
-SPEECHIFY_API_KEY = '2-QIZkGLD5H-EabaspXM4V4asrc8SdqkshUD4nYbS80='
+SPEECHIFY_API_KEY = '2-QIZkGLD5H-EabaspXM4V4asrc8SdqkshUD4nYbS80='  #not more working. to be displaced to system file
 
-ONESIGNAL_APP_ID = 'ae05c91f-4d66-4fd7-bd17-938f50b00d3e'
-ONESIGNAL_REST_API_KEY = 'Yzg1OWUwYjAtNWY2My00YzJkLThjMzgtMTEwZWVjMjkxZDY5'
+ONESIGNAL_APP_ID = 'ae05c91f-4d66-4fd7-bd17-938f50b00d3e'    #not more working. to be displaced to system file
+ONESIGNAL_REST_API_KEY = 'Yzg1OWUwYjAtNWY2My00YzJkLThjMzgtMTEwZWVjMjkxZDY5'   #not more working. to be displaced to system file
