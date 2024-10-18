@@ -24,7 +24,7 @@
 }
 
 .reaction-amount {
-    display: inline-block; /* Change this from 'block' to 'inline-block' */
+    display: inline-block; 
     padding: 5px 10px; /* Adjust padding for better spacing */
     margin: 0 2px; /* Change vertical margin to horizontal */
     text-align: center;
