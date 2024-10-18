@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     OneSignal.push(function() {
         OneSignal.getUserId(function(userId) {
             if (userId) {
-                // Send this ID to your server
                 fetch('/users/update-onesignal-id/', {
                     method: 'POST',
                     headers: {
